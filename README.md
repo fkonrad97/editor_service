@@ -6,3 +6,6 @@ Used modules:
         - express-async-errors
     - Backend framework: express
     - Database: mongodb
+    - Requirements: Joi (https://www.npmjs.com/package/joi)
+
+MongoDB model relationship: https://stackoverflow.com/questions/58748173/mongodb-schema-store-id-as-fk-or-whole-document
