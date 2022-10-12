@@ -1,19 +1,18 @@
 const mongoose = require('mongoose');
+const linkSchema = require('./link');
 
 const Node = mongoose.model('Nodes', new mongoose.Schema({
-    nodeStory: String,
+    nodeStory: {
+        type: String,
+        required: true
+    },
     from: [
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Node"
         }
     ],
-    to: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Node"
-        }
-    ]
+    to: [ linkSchema ]
 }));
 
-module.exports = Node;
+exports.Node = Node;

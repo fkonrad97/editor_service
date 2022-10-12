@@ -1,15 +1,15 @@
 const mongoose = require('mongoose');
 
-const Link = mongoose.model('Links', new mongoose.Schema({
-    decisionText: String,
-    from: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Node"
+const linkSchema = new mongoose.Schema({
+    decisionText: {
+        type: String,
+        required: true
     },
     to: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Node"
+        ref: "Node",
+        required: true
     }
-}));
+});
 
-module.exports = Node;
+module.exports = linkSchema;

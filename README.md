@@ -9,3 +9,6 @@ Used modules:
     - Requirements: Joi (https://www.npmjs.com/package/joi)
 
 MongoDB model relationship: https://stackoverflow.com/questions/58748173/mongodb-schema-store-id-as-fk-or-whole-document
+
+Difference between module.exports and exports:
+    -https://stackoverflow.com/questions/7137397/module-exports-vs-exports-in-node-js

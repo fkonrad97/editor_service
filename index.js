@@ -3,6 +3,7 @@ const express = require('express');
 const app = express();
 
 require('./startup/logging')();
+require('./startup/routes')(app);
 require('./startup/database')();
 
 const port = process.env.PORT || 3000;
@@ -24,9 +25,12 @@ const node2 = new Node({
 const node3 = new Node({     
     nodeStory: "BLABLABLA3",
     from: node1,
-    to: node2
+    to: {
+        decisionText: "Lol",
+        to: node2
+    }
 });
 
 node1.save();
 node2.save();
-node3.save();*/
+node3.save(); */
