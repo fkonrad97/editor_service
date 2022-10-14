@@ -18,13 +18,13 @@ router.post('/:from/:to', async (req, res) => {
     const fromNode = await Node.findById(req.params.from);
     const toNode = await Node.findById(req.params.to);
 
-    fromNode.to.push({
+    fromNode.outLinks.push({
         decisionText: req.body.decisionText,
         to: toNode
     });
     await fromNode.save();
 
-    toNode.from.push(fromNode);
+    toNode.inLinks.push(fromNode);
     await toNode.save();
 
     res.send([fromNode, toNode]);
@@ -35,13 +35,13 @@ router.post('/', async (req, res) => {
     const fromNode = await Node.findById(req.body.from);
     const toNode = await Node.findById(req.body.to);
 
-    fromNode.to.push({
+    fromNode.outLinks.push({
         decisionText: req.body.decisionText,
         to: toNode
     });
     await fromNode.save();
 
-    toNode.from.push(fromNode);
+    toNode.inLinks.push(fromNode);
     await toNode.save();
 
     res.send([fromNode, toNode]);
