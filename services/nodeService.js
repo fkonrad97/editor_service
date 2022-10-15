@@ -27,7 +27,8 @@ function getIsolatedNodes(nodes, startNode) {
 /**
  * 
  * @param {[Node]} nodes 
- * @param {Node} startNode 
+ * @param {Node} startNode
+ * @returns {[Node]}
  */
 function getDependentBranch(nodes, startNode) {
     let queue = [startNode];

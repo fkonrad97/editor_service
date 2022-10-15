@@ -12,3 +12,5 @@ MongoDB model relationship: https://stackoverflow.com/questions/58748173/mongodb
 
 Difference between module.exports and exports:
     -https://stackoverflow.com/questions/7137397/module-exports-vs-exports-in-node-js
+
+https://stackoverflow.com/questions/11904159/automatically-remove-referencing-objects-on-deletion-in-mongodb

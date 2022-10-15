@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-const {Node} = require('../models/node'); 
+const {Node} = require('../models/node');
+const {Link} = require('../models/link');  
 const express = require('express');
 const router = express.Router();
 
@@ -9,7 +10,6 @@ const router = express.Router();
  */
 router.get('/:id', async (req, res) => {
     const node = await Node.findById(req.params.id);
-
     res.send(node.to);
 });
 
@@ -18,10 +18,18 @@ router.post('/:from/:to', async (req, res) => {
     const fromNode = await Node.findById(req.params.from);
     const toNode = await Node.findById(req.params.to);
 
-    fromNode.outLinks.push({
+    const link = new Link({
         decisionText: req.body.decisionText,
         to: toNode
-    });
+    })
+    await link.save();
+
+    fromNode.outLinks.push(link);
+
+    /*fromNode.outLinks.push({
+        decisionText: req.body.decisionText,
+        to: toNode
+    });*/
     await fromNode.save();
 
     toNode.inLinks.push(fromNode);

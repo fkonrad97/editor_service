@@ -38,18 +38,34 @@ router.post('/', async (req, res) => {
 });
 
 // Nem torli ki a referenciakat a nem torolt de kapcsolodo nodeokbol
-router.delete('/:startNode', async (req, res) => {
+/* router.delete('/:startNode', async (req, res) => {
     const nodes = await Node.find();
     const startNode = await Node.findById(req.params.startNode);
     const dependentNodes = getDependentBranch(nodes, startNode);
 
     let deletedNodes = [];
-    for (const element of dependentNodes) {
+      for (const element of dependentNodes) {
+        for (const fromNode of element.inLinks) {
+            const tmpNode = nodes.find(node => node.id == fromNode);
+            if (!dependentNodes.includes(tmpNode)) {
+                const index = tmpNode.outLinks.indexOf(element);
+                tmpNode.outLinks.splice(index, 1);
+            }
+        }
+
+        for (const toNode of element.outLinks) {
+            const tmpNode = nodes.find(node => node.id == toNode.id);
+            if (!dependentNodes.includes(tmpNode)) {
+                const index = tmpNode.indexOf(element);
+                tmpNode.splice(index, 1);
+            }
+        } 
+
         const node = await Node.findByIdAndRemove(element.id);
         deletedNodes.push(node);
     }
 
     res.send(deletedNodes);
-});
+}); */
 
 module.exports = router; 
