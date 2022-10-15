@@ -1,16 +1,24 @@
 const mongoose = require('mongoose');
-const {Node, getIsolatedNodes} = require('../models/node'); 
+const { Node } = require('../models/node');
+const { getIsolatedNodes, getDependentBranch } = require('../services/nodeService');
 const express = require('express');
 const router = express.Router();
 
-/*router.get('/', async (req, res) => {
-    const nodes = await Node.find();
-    res.send(nodes);
-});*/
-
 router.get('/', async (req, res) => {
     const nodes = await Node.find();
-    const startNode = nodes[0];
+    res.send(nodes);
+});
+
+router.get('/dep', async (req, res) => {
+    const nodes = await Node.find();
+    res.send(nodes);
+});
+
+router.get('/isolatedNodes', async (req, res) => {
+    const nodes = await Node.find();
+    const startNode = await Node.find({
+        startingNode: true
+    });
     res.send(getIsolatedNodes(nodes, startNode));
 });
 
@@ -21,11 +29,27 @@ router.get('/:id', async (req, res) => {
 
 router.post('/', async (req, res) => {
     const node = new Node({
+        startingNode: req.body.startingNode,
         nodeStory: req.body.nodeStory
     });
     await node.save();
 
     res.send(node);
+});
+
+// Nem torli ki a referenciakat a nem torolt de kapcsolodo nodeokbol
+router.delete('/:startNode', async (req, res) => {
+    const nodes = await Node.find();
+    const startNode = await Node.findById(req.params.startNode);
+    const dependentNodes = getDependentBranch(nodes, startNode);
+
+    let deletedNodes = [];
+    for (const element of dependentNodes) {
+        const node = await Node.findByIdAndRemove(element.id);
+        deletedNodes.push(node);
+    }
+
+    res.send(deletedNodes);
 });
 
 module.exports = router; 
