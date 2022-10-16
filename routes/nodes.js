@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { Node } = require('../models/node');
+const { Link } = require('../models/link');
 const { getIsolatedNodes, getDependentBranch } = require('../services/nodeService');
 const express = require('express');
 const router = express.Router();
@@ -9,17 +10,13 @@ router.get('/', async (req, res) => {
     res.send(nodes);
 });
 
-router.get('/dep', async (req, res) => {
-    const nodes = await Node.find();
-    res.send(nodes);
-});
-
 router.get('/isolatedNodes', async (req, res) => {
     const nodes = await Node.find();
-    const startNode = await Node.find({
+    const links = await Link.find();
+    /*const startNode = await Node.find({
         startingNode: true
-    });
-    res.send(getIsolatedNodes(nodes, startNode));
+    });*/
+    res.send(getIsolatedNodes(nodes, links, nodes[0]));
 });
 
 router.get('/:id', async (req, res) => {
@@ -35,6 +32,13 @@ router.post('/', async (req, res) => {
     await node.save();
 
     res.send(node);
+});
+
+router.delete('/:id', async (req, res) => {
+    const link = await Link.updateOne({
+        _id: req.params.id,
+      });
+    res.send(link);
 });
 
 // Nem torli ki a referenciakat a nem torolt de kapcsolodo nodeokbol

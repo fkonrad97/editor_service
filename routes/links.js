@@ -20,19 +20,21 @@ router.post('/:from/:to', async (req, res) => {
 
     const link = new Link({
         decisionText: req.body.decisionText,
+        from: fromNode,
         to: toNode
     })
     await link.save();
 
     fromNode.outLinks.push(link);
+    await fromNode.save();
 
     /*fromNode.outLinks.push({
         decisionText: req.body.decisionText,
         to: toNode
-    });*/
-    await fromNode.save();
+    });
+    await fromNode.save();*/
 
-    toNode.inLinks.push(fromNode);
+    toNode.inLinks.push(link);
     await toNode.save();
 
     res.send([fromNode, toNode]);

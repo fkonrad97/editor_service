@@ -4,7 +4,7 @@
  * @param {Node} startNode 
  * @returns 
  */
-function bfsAlgo(nodes, startNode) {
+function bfsAlgo(nodes, links, startNode) {
     let queue = [startNode];
     let connectedNodes = [];
 
@@ -12,16 +12,18 @@ function bfsAlgo(nodes, startNode) {
         const current = queue.shift();
         if(current === null) continue;
         connectedNodes.push(current);
+        console.log(current);
         for (const element of current.outLinks) {
-            queue.push(nodes.find(node => node.id == element.to));
+            const link = links.find(link => link.id == element);
+            queue.push(nodes.find(node => node.id == link.to));
         }
     }
 
     return connectedNodes;
 }
 
-function getIsolatedNodes(nodes, startNode) {
-    return nodes.filter(x => !bfsAlgo(nodes, startNode).includes(x));
+function getIsolatedNodes(nodes, links, startNode) {
+    return nodes.filter(x => !bfsAlgo(nodes, links, startNode).includes(x));
 }
 
 /**
