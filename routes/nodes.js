@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
-const { Node } = require('../models/node');
-const { Link } = require('../models/link');
+const Node = require('../models/node');
+const Link = require('../models/link');
 const { getIsolatedNodes, getDependentBranch } = require('../services/nodeService');
 const express = require('express');
 const router = express.Router();
@@ -34,11 +34,12 @@ router.post('/', async (req, res) => {
     res.send(node);
 });
 
-router.delete('/:id', async (req, res) => {
-    const link = await Link.updateOne({
-        _id: req.params.id,
-      });
-    res.send(link);
+router.delete('/:linkid', async (req, res) => {
+    const deletedInstance = await Link.findOneAndDelete(
+        { _id: req.params.linkid}
+    )
+
+    res.send(deletedInstance);
 });
 
 // Nem torli ki a referenciakat a nem torolt de kapcsolodo nodeokbol

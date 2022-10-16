@@ -26,7 +26,7 @@ const nodeSchema = new mongoose.Schema({
 const Node = mongoose.model('Nodes', nodeSchema);
 
 exports.nodeSchema = nodeSchema;
-exports.Node = Node;
+module.exports = Node;
 
 /*const Node = mongoose.model('Nodes', new mongoose.Schema({
     startingNode: {
