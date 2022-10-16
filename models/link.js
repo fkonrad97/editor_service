@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Node = require('../models/node');
 
 const linkSchema = new mongoose.Schema({
     decisionText: {
@@ -17,11 +18,15 @@ const linkSchema = new mongoose.Schema({
     }
 });
 
-const Link = mongoose.model('Links', linkSchema);
-
-linkSchema.pre('remove', function(next) {
-    this.model('Node').remove({ person: this._id }, next);
+linkSchema.pre('findOneAndDelete', async function(next) {
+    console.log('trigger when middleware runs' , this.getQuery()["_id"]) ;
+    
+    const linkId = new mongoose.Types.ObjectId(this.getQuery()["_id"]);
+    await Node.updateOne({}, { $pull: { outLinks: { _id: linkId }}});
+    next();
 });
 
+const Link = mongoose.model('Links', linkSchema);
+
 exports.linkSchema = linkSchema;
-exports.Link = Link;
+module.exports = Link;
