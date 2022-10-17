@@ -29,10 +29,12 @@ nodeSchema.pre('findOneAndDelete', async function(next) {
     console.log(`NodeSchema "findOneAndDelete" has been triggered for Node:{${nodeId}}...`);
 
     const Link = mongoose.model("Links");
-    const res = await Link.deleteMany({ to: nodeId}, {from: nodeId })
+    /*const res = await Link.deleteMany({ $or: [{ to: nodeId }, { from: nodeId }]})
         .then(() => winston.info(`Node:{${nodeId}} has been deleted from related Links.`))
-        .catch(err => winston.info(`Could not remove Node:{${nodeId}} from related Links.`, err));
+        .catch(err => winston.info(`Could not remove Node:{${nodeId}} from related Links.`, err));*/
 
+    const resTo = await Link.deleteMany({ to: nodeId });    // This way works, but have to try the $or solution too
+    const resFrom = await Link.deleteMany({ from: nodeId });    
     next();
   });
 

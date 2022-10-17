@@ -28,12 +28,6 @@ router.post('/:from/:to', async (req, res) => {
     fromNode.outLinks.push(link);
     await fromNode.save();
 
-    /*fromNode.outLinks.push({
-        decisionText: req.body.decisionText,
-        to: toNode
-    });
-    await fromNode.save();*/
-
     toNode.inLinks.push(link);
     await toNode.save();
 

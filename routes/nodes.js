@@ -34,7 +34,7 @@ router.post('/', async (req, res) => {
     res.send(node);
 });
 
-router.delete('/:nodeId', async (req, res) => {
+/*router.delete('/:nodeId', async (req, res) => {
     const nodeId = new mongoose.Types.ObjectId(req.params.nodeId);
 
     const deletedInstance = await Node.findOneAndDelete(
@@ -42,37 +42,25 @@ router.delete('/:nodeId', async (req, res) => {
     );
 
     res.json(deletedInstance);
-});
+});*/
 
-// Nem torli ki a referenciakat a nem torolt de kapcsolodo nodeokbol
-/* router.delete('/:startNode', async (req, res) => {
+// Not entirely correct behiviour
+router.delete('/:startNode', async (req, res) => {
     const nodes = await Node.find();
+    const links = await Link.find();
     const startNode = await Node.findById(req.params.startNode);
-    const dependentNodes = getDependentBranch(nodes, startNode);
 
-    let deletedNodes = [];
-      for (const element of dependentNodes) {
-        for (const fromNode of element.inLinks) {
-            const tmpNode = nodes.find(node => node.id == fromNode);
-            if (!dependentNodes.includes(tmpNode)) {
-                const index = tmpNode.outLinks.indexOf(element);
-                tmpNode.outLinks.splice(index, 1);
-            }
-        }
-
-        for (const toNode of element.outLinks) {
-            const tmpNode = nodes.find(node => node.id == toNode.id);
-            if (!dependentNodes.includes(tmpNode)) {
-                const index = tmpNode.indexOf(element);
-                tmpNode.splice(index, 1);
-            }
-        } 
-
-        const node = await Node.findByIdAndRemove(element.id);
-        deletedNodes.push(node);
+    const dependentNodes = getDependentBranch(nodes, links, startNode);
+    
+    let deletedInstances = [];
+    for (const element of dependentNodes) {
+        const deletedNode = await Node.findOneAndDelete(
+            { _id: element._id }
+        );
+        deletedInstances.push(deletedNode);
     }
 
-    res.send(deletedNodes);
-}); */
+    res.send(deletedInstances);
+}); 
 
 module.exports = router; 

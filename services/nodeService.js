@@ -28,22 +28,21 @@ function getIsolatedNodes(nodes, links, startNode) {
 
 /**
  * 
- * @param {[Node]} nodes 
- * @param {Node} startNode
- * @returns {[Node]}
+ * @param { [Node] } nodes 
+ * @param { Node } startNode
+ * @returns { [Node] }
  */
-function getDependentBranch(nodes, startNode) {
+function getDependentBranch(nodes, links, startNode) {
     let queue = [startNode];
     let dependentNodes = [];
 
     while(queue.length > 0) {
-        console.log(queue);
         const current = queue.shift();
         if(current === null) continue;
         dependentNodes.push(current);
 
         for (const element of current.outLinks) {
-            const tmpNode = nodes.find(node => node.id == element.to);
+            const tmpNode = nodes.find(node => node.id == links.find(link => link.id == element).to);
             if (tmpNode.inLinks.length == 1) {
                 queue.push(tmpNode);
             }
