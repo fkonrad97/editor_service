@@ -34,12 +34,14 @@ router.post('/', async (req, res) => {
     res.send(node);
 });
 
-router.delete('/:linkid', async (req, res) => {
-    const deletedInstance = await Link.findOneAndDelete(
-        { _id: req.params.linkid}
-    )
+router.delete('/:nodeId', async (req, res) => {
+    const nodeId = new mongoose.Types.ObjectId(req.params.nodeId);
 
-    res.send(deletedInstance);
+    const deletedInstance = await Node.findOneAndDelete(
+        { _id: nodeId }
+    );
+
+    res.json(deletedInstance);
 });
 
 // Nem torli ki a referenciakat a nem torolt de kapcsolodo nodeokbol

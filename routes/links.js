@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
-const {Node} = require('../models/node');
-const {Link} = require('../models/link');  
+const Node = require('../models/node');
+const Link = require('../models/link');  
 const express = require('express');
 const router = express.Router();
 
@@ -56,6 +56,16 @@ router.post('/', async (req, res) => {
 
     res.send([fromNode, toNode]);
 
+});
+
+router.delete('/:linkId', async (req, res) => {
+    const linkId = new mongoose.Types.ObjectId(req.params.linkId);
+
+    const deletedInstance = await Link.findOneAndDelete(
+        { _id: linkId }
+    );
+
+    res.json(deletedInstance);
 });
 
 module.exports = router; 
