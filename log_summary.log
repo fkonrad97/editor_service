@@ -29,3 +29,9 @@
 {"level":"info","message":"Node:{634dcf88b4e0d3c393ca1938} has been deleted from related Links."}
 {"level":"info","message":"Listening on port 3000..."}
 {"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Node:{634e8725a9e7766bbb2d83a9} has been deleted from related Links."}
+{"level":"info","message":"Node:{634e872ba9e7766bbb2d83ad} has been deleted from related Links."}
