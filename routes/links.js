@@ -4,13 +4,10 @@ const Link = require('../models/link');
 const express = require('express');
 const router = express.Router();
 
-/**
- * Will display the nodes choices.
- * @param id - Node's ID
- */
-router.get('/:id', async (req, res) => {
-    const node = await Node.findById(req.params.id);
-    res.send(node.to);
+
+router.get('/', async (req, res) => {
+    const links = await Link.find();
+    res.send(links);
 });
 
 // Using URL params

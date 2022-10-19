@@ -34,18 +34,35 @@ router.post('/', async (req, res) => {
     res.send(node);
 });
 
-/*router.delete('/:nodeId', async (req, res) => {
+router.delete('/:nodeId', async (req, res) => {
     const nodeId = new mongoose.Types.ObjectId(req.params.nodeId);
 
     const deletedInstance = await Node.findOneAndDelete(
         { _id: nodeId }
     );
 
-    res.json(deletedInstance);
-});*/
+    res.send(deletedInstance);
+});
 
-// Not entirely correct behiviour
-router.delete('/:startNode', async (req, res) => {
+router.delete('/deleteIsolatedNodes', async (req, res) => {
+    const nodes = await Node.find();
+    const links = await Link.find();
+    /*const startNode = await Node.find({
+        startingNode: true
+    });*/
+    
+    let deletedInstances = [];
+    for (const element of getIsolatedNodes(nodes, links, nodes[0])) {
+        const deletedNode = await Node.findOneAndDelete(
+            { _id: element._id }
+        );
+        deletedInstances.push(deletedNode);
+    }
+
+    res.send(deletedInstances);
+});
+
+router.delete('/deleteDependencyTree/:startNode', async (req, res) => {
     const nodes = await Node.find();
     const links = await Link.find();
     const startNode = await Node.findById(req.params.startNode);
