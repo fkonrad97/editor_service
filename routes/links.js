@@ -39,17 +39,20 @@ router.post('/', async (req, res) => {
     const fromNode = await Node.findById(req.body.from);
     const toNode = await Node.findById(req.body.to);
 
-    fromNode.outLinks.push({
+    const link = new Link({
         decisionText: req.body.decisionText,
+        from: fromNode,
         to: toNode
-    });
+    })
+    await link.save();
+
+    fromNode.outLinks.push(link);
     await fromNode.save();
 
-    toNode.inLinks.push(fromNode);
+    toNode.inLinks.push(link);
     await toNode.save();
 
     res.send([fromNode, toNode]);
-
 });
 
 router.delete('/:linkId', async (req, res) => {
