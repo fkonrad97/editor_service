@@ -52,6 +52,43 @@ router.post('/', async (req, res) => {
     res.send([fromNode, toNode]);
 });
 
+router.put('/updateLinkToNode/:id', async (req, res) => {
+    const link = await Link.findById(req.params.id);
+    const newToNode = await Node.findById(req.body.toNode);
+    const oldToNode = await Node.findById(link.to);
+
+    oldToNode.updateOne({}, {
+        $pull: {
+           inLinks: { $in: [link.id] }
+       }
+    });
+
+    newToNode.inLinks.push(link.id);
+
+    link.to = newToNode.id;
+
+    res.send(link);
+});
+
+router.put('/updateLinkFromNode/:id', async (req, res) => {
+    const link = await Link.findById(req.params.id);
+    const newFromNode = await Node.findById(req.body.fromNode);
+    const oldFromNode = await Node.findById(link.from);
+
+    oldFromNode.updateOne({}, {
+        $pull: {
+           outLinks: { $in: [link.id] }
+       }
+    });
+
+    newFromNode.outLinks.push(link.id);
+
+    link.from = newFromNode.id;
+
+    res.send(link);
+});
+
+
 router.delete('/:linkId', async (req, res) => {
     const linkId = new mongoose.Types.ObjectId(req.params.linkId);
 

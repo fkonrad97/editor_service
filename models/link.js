@@ -23,7 +23,7 @@ linkSchema.pre('findOneAndDelete', async function(next) {
     console.log(`LinkSchema "findOneAndDelete" has been triggered for Link:{${linkId}}...`);
 
     const Node = mongoose.model("Nodes");
-    const res = await Node.updateMany({}, {
+    await Node.updateMany({}, {
          $pull: {
             inLinks: { $in: [linkId] },
             outLinks: { $in: [linkId] }

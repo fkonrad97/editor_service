@@ -24,7 +24,7 @@ const nodeSchema = new mongoose.Schema({
     ]
 });
 
-nodeSchema.pre('findOneAndDelete', async function(next) {
+/*nodeSchema.pre('findOneAndDelete', async function(next) {
     const nodeId = this.getQuery()._id;
     console.log(`NodeSchema "findOneAndDelete" has been triggered for Node:{${nodeId}}...`);
 
@@ -39,8 +39,7 @@ nodeSchema.pre('findOneAndDelete', async function(next) {
     .catch(err => winston.info(`Could not remove Node:{${nodeId}} from related Links.`, err));
          
     next();
-  });
-
+  });*/
 
 const Node = mongoose.model('Nodes', nodeSchema);
 

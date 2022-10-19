@@ -1,3 +1,6 @@
+const Node = require('../models/node');
+const Link = require('../models/link');  
+
 /**
  * Breadth First Search
  * @param {[Node]} nodes - all nodes
@@ -52,5 +55,26 @@ function getDependentBranch(nodes, links, startNode) {
     return dependentNodes;
 }
 
+async function deleteNode(selectedNode) {
+    for (const link of selectedNode.inLinks) {
+        await Link.findOneAndDelete(
+            { _id: link }
+        );
+    }
+
+    for (const link of selectedNode.outLinks) {
+        await Link.findOneAndDelete(
+            { _id: link }
+        );
+    }
+
+    const deletedNode = await Node.findOneAndDelete(
+        { _id: selectedNode._id }
+    );
+
+    return deletedNode;
+}
+
 exports.getIsolatedNodes = getIsolatedNodes;
 exports.getDependentBranch = getDependentBranch;
+exports.deleteNode = deleteNode;
