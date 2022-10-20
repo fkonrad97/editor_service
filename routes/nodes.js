@@ -19,6 +19,15 @@ router.get('/isolatedNodes', async (req, res) => {
     res.send(getIsolatedNodes(nodes, links, nodes[0]));
 });
 
+router.get('/dependent', async (req, res) => {
+    const nodes = await Node.find();
+    const links = await Link.find();
+    /*const startNode = await Node.find({
+        startingNode: true
+    });*/
+    res.send(getDependentBranch(nodes, links, nodes[0]));
+});
+
 router.get('/:id', async (req, res) => {
     const node = await Node.findById(req.params.id);
     res.send(node);
@@ -68,7 +77,7 @@ router.delete('/deleteDependencyTree/:startNode', async (req, res) => {
     const startNode = await Node.findById(req.params.startNode);
 
     const dependentNodes = getDependentBranch(nodes, links, startNode);
-    console.log(dependentNodes);    // Nem jo a getDependentBranch
+    console.log(dependentNodes);  
 
     let deletedInstances = [];
     for (const element of dependentNodes) {

@@ -35,26 +35,53 @@ function getIsolatedNodes(nodes, links, startNode) {
  * @param { Node } startNode
  * @returns { [Node] }
  */
-function getDependentBranch(nodes, links, startNode) {
+function getDependentBranch(nodes, links, startNode) {  // Looking for optimalization options
     let queue = [startNode];
     let dependentNodes = [];
+    let usedNodeList = [];
+    let cntMap = new Map();
+    let usedLinkList = [];
 
     while(queue.length > 0) {
         const current = queue.shift();
         if(current === null) continue;
-        dependentNodes.push(current);
+        if (!usedNodeList.includes(current)) {
+            usedNodeList.push(current);
+        }
 
-        for (const element of current.outLinks) {
-            const tmpNode = nodes.find(node => node.id == links.find(link => link.id == element).to);
-            if (tmpNode.inLinks.length == 1) {
-                queue.push(tmpNode);
+        if (current.outLinks.length > 0) {
+            for (const element of current.outLinks) {
+                if (!usedLinkList.includes(element)) {
+                    const tmpNode = nodes.find(node => node.id == links.find(link => link.id == element).to);
+    
+                    if (cntMap.has(tmpNode.id)) {
+                        cntMap.set(tmpNode.id, cntMap.get(tmpNode.id) + 1);
+                    } else {
+                        cntMap.set(tmpNode.id, 1);
+                    }
+                    
+                    if (!usedNodeList.includes(tmpNode)) {
+                        queue.push(tmpNode);
+                    }
+                    usedLinkList.push(element);
+                }
             }
         }
     }
 
+    for (const element of usedNodeList) {
+         if (element.inLinks.length == cntMap.get(element.id)) dependentNodes.push(element);
+    }
+    dependentNodes.push(startNode);
+
     return dependentNodes;
 }
 
+/**
+ * 
+ * @param {*} selectedNode 
+ * @returns 
+ */
 async function deleteNode(selectedNode) {
     for (const link of selectedNode.inLinks) {
         await Link.findOneAndDelete(
