@@ -4,16 +4,20 @@ const Node = require('../models/node');
 const Link = require('../models/link');  
 const Story = require('../models/story'); 
 const express = require('express');
+const c = require('config');
 const router = express.Router();
 
 let currentStory = {};    // figure it out how to do it
 
 router.get('/selectStory', async (req, res) => {
-    const tmpStory = await Story.find({
-        title: req.body.title
-    });
+    const stories = await Story.find();
+    currentStory = stories.find(story => story.title == req.body.title);
 
-    // ....
+    if (typeof currentStory !== 'undefined') {
+        res.send(`Selected Story: ${currentStory.title}`);
+    } else {
+        res.status(404).send(`${req.body.title} can not be found!`);
+    }
 });
 
 router.get('/', async (req, res) => {
