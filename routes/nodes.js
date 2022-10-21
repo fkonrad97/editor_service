@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
 router.get('/isolatedNodes', async (req, res) => {
     const nodes = await Node.find();
     const links = await Link.find();
-    const startNode = nodes.find(node => node.startingNode == true);
+    const startNode = nodes.find(node => node.startingNode == true); // nodes.find({startingNode == true}); ??
     if (typeof startNode !== 'undefined') {
         res.send(getIsolatedNodes(nodes, links, startNode));
     } else {
@@ -28,7 +28,7 @@ router.get('/dependencyTree/:id', async (req, res) => {
     
     let dependentNodes = [];
         
-    const startNode = nodes.find(node => node.id == req.params.id)
+    const startNode = nodes.find(node => node.id == req.params.id);
         
     if (typeof startNode !== 'undefined') {
         dependentNodes = getDependentBranch(nodes, links, startNode);

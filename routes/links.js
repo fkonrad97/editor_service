@@ -4,7 +4,6 @@ const Link = require('../models/link');
 const express = require('express');
 const router = express.Router();
 
-
 router.get('/', async (req, res) => {
     const links = await Link.find();
     res.send(links);

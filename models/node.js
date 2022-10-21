@@ -25,7 +25,7 @@ const nodeSchema = new mongoose.Schema({
 });
 
 nodeSchema.pre('findOneAndDelete', async function(next) {
-    nodeId = this.getQuery()._id;
+    const nodeId = this.getQuery()._id;
     console.log(`NodeSchema "findOneAndDelete" has been triggered for Node: {${nodeId}}...`);
 
     const Story = mongoose.model("Stories");
