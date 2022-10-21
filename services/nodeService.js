@@ -15,7 +15,6 @@ function bfsAlgo(nodes, links, startNode) {
         const current = queue.shift();
         if(current === null) continue;
         connectedNodes.push(current);
-        console.log(current);
         for (const element of current.outLinks) {
             const link = links.find(link => link.id == element);
             queue.push(nodes.find(node => node.id == link.to));

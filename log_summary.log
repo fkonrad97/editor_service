@@ -211,3 +211,106 @@
 {"level":"info","message":"Connected to mongodb://localhost/dpath..."}
 {"level":"info","message":"Listening on port 3000..."}
 {"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Link:{635151ea23bbe0d6ddf3b8dd} has been deleted from Node's reference lists."}
+{"level":"info","message":"Link:{635151ea23bbe0d6ddf3b8dd} has been deleted from Node's reference lists."}
+{"level":"info","message":"Link:{635151ea23bbe0d6ddf3b8dd} has been deleted from Node's reference lists."}
+{"level":"info","message":"Link:{635151ea23bbe0d6ddf3b8dd} has been deleted from Node's reference lists."}
+{"level":"info","message":"Link:{635151ea23bbe0d6ddf3b8de} has been deleted from Node's reference lists."}
+{"level":"info","message":"Link:{635151ea23bbe0d6ddf3b8de} has been deleted from Node's reference lists."}
+{"level":"info","message":"Link:{635151ea23bbe0d6ddf3b8de} has been deleted from Node's reference lists."}
+{"level":"info","message":"Link:{635151ea23bbe0d6ddf3b8de} has been deleted from Node's reference lists."}
+{"level":"info","message":"Link:{635151ea23bbe0d6ddf3b8e1} has been deleted from Node's reference lists."}
+{"level":"info","message":"Link:{635151ea23bbe0d6ddf3b8e1} has been deleted from Node's reference lists."}
+{"level":"info","message":"Link:{635151ea23bbe0d6ddf3b8e1} has been deleted from Node's reference lists."}
+{"level":"info","message":"Link:{635151ea23bbe0d6ddf3b8e1} has been deleted from Node's reference lists."}
+{"level":"info","message":"Link:{635151ea23bbe0d6ddf3b8e1} has been deleted from Node's reference lists."}
+{"level":"info","message":"Link:{635151ea23bbe0d6ddf3b8e0} has been deleted from Node's reference lists."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Node: {635271ebb654fcfa914c04b7} caugth error during saving: ValidationError: nodeStory: Path `nodeStory` is required."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Node: {6352721cf2ecd8d98706834b} caugth error during saving: ValidationError: nodeStory: Path `nodeStory` is required."}
+{"level":"info","message":"Node: {63527244f2ecd8d98706834c} saved to the database."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Deletion was successful for: "}
+{"code":"ERR_HTTP_INVALID_STATUS_CODE","level":"info","message":"Deletion was unsuccessful for:  Invalid status code: Deletion was successful for: ","stack":"RangeError [ERR_HTTP_INVALID_STATUS_CODE]: Invalid status code: Deletion was successful for: \n    at new NodeError (node:internal/errors:387:5)\n    at ServerResponse.writeHead (node:_http_server:297:11)\n    at ServerResponse._implicitHeader (node:_http_server:288:8)\n    at write_ (node:_http_outgoing:826:9)\n    at ServerResponse.end (node:_http_outgoing:934:5)\n    at ServerResponse.send (C:\\Users\\fkonr\\node_modules\\express\\lib\\response.js:232:10)\n    at C:\\Users\\fkonr\\OneDrive\\Desktop\\Kondocuments\\path_backend\\routes\\nodes.js:76:13\n    at processTicksAndRejections (node:internal/process/task_queues:96:5)\n    at async C:\\Users\\fkonr\\OneDrive\\Desktop\\Kondocuments\\path_backend\\routes\\nodes.js:71:29"}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Deletion was successful for: "}
+{"code":"ERR_HTTP_INVALID_STATUS_CODE","level":"info","message":"Deletion was unsuccessful for:  Invalid status code: Deletion was successful for: ","stack":"RangeError [ERR_HTTP_INVALID_STATUS_CODE]: Invalid status code: Deletion was successful for: \n    at new NodeError (node:internal/errors:387:5)\n    at ServerResponse.writeHead (node:_http_server:297:11)\n    at ServerResponse._implicitHeader (node:_http_server:288:8)\n    at write_ (node:_http_outgoing:826:9)\n    at ServerResponse.end (node:_http_outgoing:934:5)\n    at ServerResponse.send (C:\\Users\\fkonr\\node_modules\\express\\lib\\response.js:232:10)\n    at C:\\Users\\fkonr\\OneDrive\\Desktop\\Kondocuments\\path_backend\\routes\\nodes.js:76:25\n    at processTicksAndRejections (node:internal/process/task_queues:96:5)\n    at async C:\\Users\\fkonr\\OneDrive\\Desktop\\Kondocuments\\path_backend\\routes\\nodes.js:71:5"}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Deletion was successful for: "}
+{"code":"ERR_HTTP_INVALID_STATUS_CODE","level":"info","message":"Deletion was unsuccessful for:  Invalid status code: Deletion was successful for: ","stack":"RangeError [ERR_HTTP_INVALID_STATUS_CODE]: Invalid status code: Deletion was successful for: \n    at new NodeError (node:internal/errors:387:5)\n    at ServerResponse.writeHead (node:_http_server:297:11)\n    at ServerResponse._implicitHeader (node:_http_server:288:8)\n    at write_ (node:_http_outgoing:826:9)\n    at ServerResponse.end (node:_http_outgoing:934:5)\n    at ServerResponse.send (C:\\Users\\fkonr\\node_modules\\express\\lib\\response.js:232:10)\n    at C:\\Users\\fkonr\\OneDrive\\Desktop\\Kondocuments\\path_backend\\routes\\nodes.js:76:13\n    at processTicksAndRejections (node:internal/process/task_queues:96:5)\n    at async C:\\Users\\fkonr\\OneDrive\\Desktop\\Kondocuments\\path_backend\\routes\\nodes.js:71:5"}
+{"level":"info","message":"Listening on port 3000..."}
+{"level":"info","message":"Connected to mongodb://localhost/dpath..."}
+{"level":"info","message":"Deletion was successful for: "}
+{"code":"ERR_HTTP_INVALID_STATUS_CODE","level":"info","message":"Deletion was unsuccessful for:  Invalid status code: Deletion was successful for: ","stack":"RangeError [ERR_HTTP_INVALID_STATUS_CODE]: Invalid status code: Deletion was successful for: \n    at new NodeError (node:internal/errors:387:5)\n    at ServerResponse.writeHead (node:_http_server:297:11)\n    at ServerResponse._implicitHeader (node:_http_server:288:8)\n    at write_ (node:_http_outgoing:826:9)\n    at ServerResponse.end (node:_http_outgoing:934:5)\n    at ServerResponse.send (C:\\Users\\fkonr\\node_modules\\express\\lib\\response.js:232:10)\n    at C:\\Users\\fkonr\\OneDrive\\Desktop\\Kondocuments\\path_backend\\routes\\nodes.js:77:25\n    at processTicksAndRejections (node:internal/process/task_queues:96:5)\n    at async C:\\Users\\fkonr\\OneDrive\\Desktop\\Kondocuments\\path_backend\\routes\\nodes.js:72:5"}

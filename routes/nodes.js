@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Node = require('../models/node');
 const Link = require('../models/link');
 const { getIsolatedNodes, getDependentBranch, deleteNode } = require('../services/nodeService');
+const winston = require('winston');
 const express = require('express');
 const router = express.Router();
 
@@ -13,24 +14,38 @@ router.get('/', async (req, res) => {
 router.get('/isolatedNodes', async (req, res) => {
     const nodes = await Node.find();
     const links = await Link.find();
-    /*const startNode = await Node.find({
-        startingNode: true
-    });*/
-    res.send(getIsolatedNodes(nodes, links, nodes[0]));
+    const startNode = nodes.find(node => node.startingNode == true);
+    if (typeof startNode !== 'undefined') {
+        res.send(getIsolatedNodes(nodes, links, startNode));
+    } else {
+        res.status(404).send('Starting point not defined!');
+    }
 });
 
-router.get('/dependent', async (req, res) => {
+router.get('/dependencyTree/:id', async (req, res) => {
     const nodes = await Node.find();
     const links = await Link.find();
-    /*const startNode = await Node.find({
-        startingNode: true
-    });*/
-    res.send(getDependentBranch(nodes, links, nodes[0]));
+    
+    let dependentNodes = [];
+        
+    const startNode = nodes.find(node => node.id == req.params.id)
+        
+    if (typeof startNode !== 'undefined') {
+        dependentNodes = getDependentBranch(nodes, links, startNode);
+        res.send(dependentNodes);
+    } else {
+        res.status(404).send('There are 0 node in the Story or the given ID is not found!');
+    }
 });
 
 router.get('/:id', async (req, res) => {
-    const node = await Node.findById(req.params.id);
-    res.send(node);
+    const node = await Node.findById(req.params.id)
+        .then(result => {
+            res.send(node);
+        })
+        .catch(err => {
+            res.status(404).send(`ID: {${req.params.id}} not found.`);
+        })
 });
 
 router.post('/', async (req, res) => {
@@ -38,37 +53,52 @@ router.post('/', async (req, res) => {
         startingNode: req.body.startingNode,
         nodeStory: req.body.nodeStory
     });
-    await node.save();
 
-    res.send(node);
+    await node.save()
+        .then(savedNode => {
+            winston.info(`Node: {${savedNode.id}} saved to the database.`);
+            res.send("Node saved to database!");
+        })
+        .catch(err => {
+            winston.info(`Node: {${savedNode.id}} caugth error during saving: ${err}`);
+            res.status(400).send(`Unable to save to database: ${err}`);
+        });
 });
 
 router.delete('/:nodeId', async (req, res) => {
     const nodeId = new mongoose.Types.ObjectId(req.params.nodeId);
 
-    const deletedInstance = await Node.findOneAndDelete(
-        { _id: nodeId }
-    );
 
-    res.send(deletedInstance);
+    await Node.findOneAndDelete(
+        { _id: nodeId }
+    )
+    .then(deletedNode => {
+        winston.info("Deletion was successful for: ", deletedNode);
+        res.status(500).send("Deletion was successful for: ", deletedNode);
+    })
+    .catch(err => {
+        winston.info("Deletion was unsuccessful for: ", err);
+        res.status(500).send("Deletion was unsuccessful for: ", err);
+    });
 });
 
 router.delete('/deleteIsolatedNodes', async (req, res) => {
     const nodes = await Node.find();
     const links = await Link.find();
-    /*const startNode = await Node.find({
-        startingNode: true
-    });*/
-    
-    let deletedInstances = [];
-    for (const element of getIsolatedNodes(nodes, links, nodes[0])) {
-        const deletedNode = await Node.findOneAndDelete(
-            { _id: element._id }
-        );
-        deletedInstances.push(deletedNode);
-    }
+    const startNode = nodes.find(node => node.startingNode == true);
 
-    res.send(deletedInstances);
+    if (typeof startNode !== 'undefined') {
+        let deletedInstances = [];
+        for (const element of getIsolatedNodes(nodes, links, nodes[0])) {
+            const deletedNode = await Node.findOneAndDelete(
+                { _id: element._id }
+            );
+            deletedInstances.push(deletedNode);
+        } 
+        res.send(deletedInstances);
+    } else {
+        res.status(404).send('Starting point not defined!');
+    }
 });
 
 router.delete('/deleteDependencyTree/:startNode', async (req, res) => {
@@ -90,7 +120,8 @@ router.delete('/deleteDependencyTree/:startNode', async (req, res) => {
 
 router.post('/test', async (req, res) => {
     const node1 = new Node({
-        nodeStory: "Node1"
+        nodeStory: "Node1",
+        startingNode: true
     });
 
     const node2 = new Node({
