@@ -7,14 +7,18 @@ const storySchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    nodes: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Node'
-    },
-    links: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Link'
-    }
+    nodes: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Node'
+        }
+    ],
+    links: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Link'
+        }
+    ]
 });
 
 const Story = mongoose.model('Stories', storySchema);
