@@ -8,19 +8,19 @@ const linkSchema = new mongoose.Schema({
     },
     from: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'fromNode',
+        ref: 'Node',
         required: true
     },
     to: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'toNode',
+        ref: 'Node',
         required: true
     }
 });
 
 linkSchema.pre('findOneAndDelete', async function(next) {
     linkId = this.getQuery()._id;
-    console.log(`LinkSchema "findOneAndDelete" has been triggered for Link:{${linkId}}...`);
+    console.log(`LinkSchema "findOneAndDelete" has been triggered for Link: {${linkId}}...`);
 
     const Node = mongoose.model("Nodes");
     await Node.updateMany({}, {
@@ -29,8 +29,24 @@ linkSchema.pre('findOneAndDelete', async function(next) {
             outLinks: { $in: [linkId] }
         }
     })
-    .then(() => winston.info(`Link:{${linkId}} has been deleted from Node's reference lists.`))
-    .catch(err => winston.info(`Could not remove Link:{${linkId}} from Node's reference list properties.`, err));
+    .then(() => winston.info(`Link: {${linkId}} has been deleted from Node's reference lists.`))
+    .catch(err => winston.info(`Could not remove Link: {${linkId}} from Node's reference list properties.`, err));
+
+    next();
+  });
+
+linkSchema.pre('findOneAndDelete', async function(next) {
+    linkId = this.getQuery()._id;
+    console.log(`LinkSchema "findOneAndDelete" has been triggered for Link: {${linkId}}...`);
+
+    const Story = mongoose.model("Stories");
+    await Story.updateMany({}, {
+         $pull: {
+            links: { $in: [linkId] }
+        }
+    })
+    .then(() => winston.info(`Link: {${linkId}} has been deleted from Story's reference lists.`))
+    .catch(err => winston.info(`Could not remove Link: {${linkId}} from Story's reference list properties.`, err));
 
     next();
   });

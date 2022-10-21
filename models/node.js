@@ -13,16 +13,32 @@ const nodeSchema = new mongoose.Schema({
     inLinks: [
         {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'inLinks'
+            ref: 'Link'
         }
     ],
     outLinks: [
         {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'outLinks'
+            ref: 'Link'
         }
     ]
 });
+
+nodeSchema.pre('findOneAndDelete', async function(next) {
+    nodeId = this.getQuery()._id;
+    console.log(`NodeSchema "findOneAndDelete" has been triggered for Node: {${nodeId}}...`);
+
+    const Story = mongoose.model("Stories");
+    await Story.updateMany({}, {
+         $pull: {
+            nodes: { $in: [nodeId] }
+        }
+    })
+    .then(() => winston.info(`Node: {${nodeId}} has been deleted from Story's reference lists.`))
+    .catch(err => winston.info(`Could not remove Node: {${nodeId}} from Story's reference list properties.`, err));
+
+    next();
+  });
 
 const Node = mongoose.model('Nodes', nodeSchema);
 
