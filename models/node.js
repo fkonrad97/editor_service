@@ -40,6 +40,20 @@ nodeSchema.pre('findOneAndDelete', async function(next) {
     next();
   });
 
+nodeSchema.post('save', async function(doc) {
+    const nodeId = doc.id;
+    console.log(`NodeSchema post middleware "save" has been triggered for Node: {${nodeId}} after it has been saved to the DB...`);
+
+    const Story = mongoose.model("Stories");
+    await Story.updateMany({}, {
+         $push: {
+            nodes: nodeId
+        }
+    })
+    .then(() => winston.info(`Node: {${nodeId}} has been add to Story's reference lists.`))
+    .catch(err => winston.info(`Could not add Link: {${nodeId}} to Story's reference list.`, err));
+});
+
 const Node = mongoose.model('Nodes', nodeSchema);
 
 exports.nodeSchema = nodeSchema;

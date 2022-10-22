@@ -42,6 +42,7 @@ router.post('/createStory/:title', async (req, res) => {
     });
 });
 
+// Uses pre save in nodes to save to the Story also
 router.post('/addNode', async (req, res) => {
     if (currentStory === null) return res.status(404).send('Story has not been selected!');
 
@@ -57,16 +58,24 @@ router.post('/addNode', async (req, res) => {
         }
     });
 
-    currentStory.nodes.push(node);
-    await currentStory.save(function (err) {
-        if (err) {
-            winston.info(`Node: {${node.id}} caugth error during saving to the Story {${currentStory.title}}: ${err}`);
-            res.status(400).send(`Unable to save to database: ${err}`);
-        } else {
-            winston.info(`Node: {${node.id}} saved to Story {${currentStory.title}}`);
-            res.send(`Node saved to Story {${currentStory.title}}!`);
-        }
-    });
+    res.send(node);
+});
+
+// Uses pre save in links to save to the Story and the related Nodes also
+router.post('/addLink', async (req, res) => {
+    if (currentStory === null) return res.status(404).send('Story has not been selected!');
+
+    const fromNode = await Node.findById(req.body.from);
+    const toNode = await Node.findById(req.body.to);
+
+    const link = new Link({
+        decisionText: req.body.decisionText,
+        from: fromNode,
+        to: toNode
+    })
+    await link.save();
+
+    res.send(link);
 });
 
 module.exports = router; 
