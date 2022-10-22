@@ -22,7 +22,7 @@ const linkSchema = new mongoose.Schema({
  * findOneAndDelete pres
  */
 linkSchema.pre('findOneAndDelete', async function(next) {
-    linkId = this.getQuery()._id;
+    const linkId = this.getQuery()._id;
     console.log(`LinkSchema "findOneAndDelete" has been triggered for Link: {${linkId}}...`);
 
     const Node = mongoose.model("Nodes");

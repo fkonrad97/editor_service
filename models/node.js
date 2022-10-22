@@ -24,9 +24,30 @@ const nodeSchema = new mongoose.Schema({
     ]
 });
 
-nodeSchema.pre('findOneAndDelete', async function(next) {
-    const nodeId = this.getQuery()._id;
+/**
+ * findOneAndDelete
+ */
+// NEEDS TO BE TESTED 
+nodeSchema.post('findOneAndDelete', async function(doc, next) {
+    const nodeId = doc.id;
     console.log(`NodeSchema "findOneAndDelete" has been triggered for Node: {${nodeId}}...`);
+
+    const relatedLinks = doc.inLinks.concat(doc.outLinks);
+    console.log(relatedLinks);
+
+    const Link = mongoose.model("Links");
+    for (const link of relatedLinks) {
+        await Link.findOneAndDelete(
+            { _id: link }
+        );
+    }
+    console.log("Deletion done.");
+
+    next();
+  });
+
+nodeSchema.post('findOneAndDelete', async function(doc) {
+    const nodeId = doc.id;
 
     const Story = mongoose.model("Stories");
     await Story.updateMany({}, {
@@ -36,10 +57,11 @@ nodeSchema.pre('findOneAndDelete', async function(next) {
     })
     .then(() => winston.info(`Node: {${nodeId}} has been deleted from Story's reference lists.`))
     .catch(err => winston.info(`Could not remove Node: {${nodeId}} from Story's reference list properties.`, err));
-
-    next();
   });
 
+/**
+ * SAVE
+ */
 nodeSchema.post('save', async function(doc) {
     const nodeId = doc.id;
     console.log(`NodeSchema post middleware "save" has been triggered for Node: {${nodeId}} after it has been saved to the DB...`);

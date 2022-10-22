@@ -78,4 +78,67 @@ router.post('/addLink', async (req, res) => {
     res.send(link);
 });
 
+router.delete('/:linkId', async (req, res) => {
+    const linkId = new mongoose.Types.ObjectId(req.params.linkId);
+
+    const deletedInstance = await Link.findOneAndDelete(
+        { _id: linkId }
+    );
+
+    res.json(deletedInstance);
+});
+
+router.delete('/:nodeId', async (req, res) => {
+    const nodeId = new mongoose.Types.ObjectId(req.params.nodeId);
+
+    await Node.findOneAndDelete(
+        { _id: nodeId }
+    )
+    .then(deletedNode => {
+        winston.info("Deletion was successful for: ", deletedNode);
+        res.status(500).send("Deletion was successful for: ", deletedNode);
+    })
+    .catch(err => {
+        winston.info("Deletion was unsuccessful for: ", err);
+        res.status(500).send("Deletion was unsuccessful for: ", err);
+    });
+});
+
+router.delete('/deleteIsolatedNodes', async (req, res) => {
+    const nodes = await Node.find();
+    const links = await Link.find();
+    const startNode = nodes.find(node => node.startingNode == true);
+
+    if (typeof startNode !== 'undefined') {
+        let deletedInstances = [];
+        for (const element of getIsolatedNodes(nodes, links, nodes[0])) {
+            const deletedNode = await Node.findOneAndDelete(
+                { _id: element._id }
+            );
+            deletedInstances.push(deletedNode);
+        } 
+        res.send(deletedInstances);
+    } else {
+        res.status(404).send('Starting point not defined!');
+    }
+});
+
+router.delete('/deleteDependencyTree/:startNode', async (req, res) => {
+    const nodes = await Node.find();
+    const links = await Link.find();
+    const startNode = await Node.findById(req.params.startNode);
+
+    const dependentNodes = getDependentBranch(nodes, links, startNode);
+    console.log(dependentNodes);  
+
+    let deletedInstances = [];
+    for (const element of dependentNodes) {
+        deletedInstances.push(await Node.findOneAndDelete(
+            { _id: element.id }
+        ));
+    }
+
+    res.send(deletedInstances);
+}); 
+
 module.exports = router; 
