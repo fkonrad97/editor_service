@@ -23,27 +23,5 @@ const storySchema = new mongoose.Schema({
 
 const Story = mongoose.model('Stories', storySchema);
 
-function currentStorySelector() {
-    let currentStory = {
-        story: new Story({
-            title: "Dummy"
-        })
-    };
-
-    Object.defineProperty(currentStory, 'getCurrentStory', {
-        get: function () {
-            return this.story;
-        }
-    });
-    
-    Object.defineProperty(currentStory, 'changeCurrentStory', {
-        set : function (story) {
-            console.log(story);
-            this.story = story;
-        }
-    });
-}
-
-exports.currentStorySelector = currentStorySelector;
 exports.storySchema = storySchema;
 module.exports = Story;

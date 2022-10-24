@@ -6,6 +6,11 @@ const linkSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    story: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Story',
+        required: true
+    },
     from: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Node',
@@ -18,15 +23,14 @@ const linkSchema = new mongoose.Schema({
     }
 });
 
-/**
- * findOneAndDelete pres
- */
-linkSchema.pre('findOneAndDelete', async function(next) {
-    const linkId = this.getQuery()._id;
-    console.log(`LinkSchema "findOneAndDelete" has been triggered for Link: {${linkId}}...`);
+linkSchema.post('findOneAndDelete', async function(doc, next) {
+    const linkId = doc.id;
+    console.log(`LinkSchema "findOneAndDelete" has been triggered for delete Link: {${linkId}} from Nodes...`);
 
     const Node = mongoose.model("Nodes");
-    await Node.updateMany({}, {
+    await Node.updateMany({
+        story: doc.story
+    }, {
          $pull: {
             inLinks: { $in: [linkId] },
             outLinks: { $in: [linkId] }
@@ -38,35 +42,33 @@ linkSchema.pre('findOneAndDelete', async function(next) {
     next();
   });
 
-linkSchema.pre('findOneAndDelete', async function(next) {
-    const linkId = this.getQuery()._id;
-    console.log(`LinkSchema "findOneAndDelete" has been triggered for Link: {${linkId}}...`);
+linkSchema.post('findOneAndDelete', async function(doc) {
+    const linkId = doc.id;
+    console.log(`LinkSchema "findOneAndDelete" has been triggered for delete Link: {${linkId}} from Story...`);
 
     const Story = mongoose.model("Stories");
-    await Story.updateMany({}, {
+    await Story.updateMany({
+        _id: doc.story
+    }, {
          $pull: {
             links: { $in: [linkId] }
         }
     })
     .then(() => winston.info(`Link: {${linkId}} has been deleted from Story's reference lists.`))
     .catch(err => winston.info(`Could not remove Link: {${linkId}} from Story's reference list properties.`, err));
-
-    next();
   });
 
-/**
- * SAVE posts
- */
 linkSchema.post('save', async function(doc ,next) {
     const linkId = doc.id;
-    console.log(`LinkSchema post middleware "save" has been triggered for Link: {${linkId}} after it has been saved to the DB...`);
+    console.log(`LinkSchema post middleware "save" has been triggered for save Link: {${linkId}} to related Nodes and Story reference lists after it has been saved to the DB...`);
 
     const Node = mongoose.model("Nodes");
 
-    await Node.updateOne(
-        { _id: doc.from }, 
-        { $push: { outLinks: linkId } }
-    )
+    await Node.updateOne({ 
+        _id: doc.from 
+    }, { 
+        $push: { outLinks: linkId } 
+    })
     .then(() => {
         Node.updateOne(
             { _id: doc.to }, 
@@ -84,7 +86,9 @@ linkSchema.post('save', async function(doc) {
     const linkId = doc.id;
 
     const Story = mongoose.model("Stories");
-    await Story.updateMany({}, {
+    await Story.updateMany({
+        _id: doc.story
+    }, {
          $push: {
             links: linkId
         }
@@ -92,10 +96,6 @@ linkSchema.post('save', async function(doc) {
     .then(() => winston.info(`Link: {${linkId}} has been added to Story's reference lists.`))
     .catch(err => winston.info(`Could not add Link: {${linkId}} to Story's reference list.`, err));
 });
-
-/**
- * update posts
- */
 
 const Link = mongoose.model('Links', linkSchema);
 

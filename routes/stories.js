@@ -4,7 +4,7 @@ const Node = require('../models/node');
 const Link = require('../models/link');  
 const Story = require('../models/story'); 
 const express = require('express');
-const c = require('config');
+const { getIsolatedNodes, getDependentBranch } = require('../services/nodeService');
 const router = express.Router();
 
 let currentStory = null;    // figure it out how to do it
@@ -48,6 +48,7 @@ router.post('/addNode', async (req, res) => {
 
     const node = new Node({
         startingNode: req.body.startingNode,
+        story: currentStory.id,
         nodeStory: req.body.nodeStory
     });
 
@@ -68,39 +69,45 @@ router.post('/addLink', async (req, res) => {
     const fromNode = await Node.findById(req.body.from);
     const toNode = await Node.findById(req.body.to);
 
-    const link = new Link({
-        decisionText: req.body.decisionText,
-        from: fromNode,
-        to: toNode
-    })
-    await link.save();
+    if (fromNode.story.equals(toNode.story)) {
+        const link = new Link({
+            decisionText: req.body.decisionText,
+            story: currentStory.id,
+            from: fromNode,
+            to: toNode
+        })
+        await link.save();
 
-    res.send(link);
+        res.send(link);
+    } else {
+        res.send('They are not in the same Story.');
+    }
 });
 
-router.delete('/:linkId', async (req, res) => {
+// DELETION
+router.delete('/deleteLink/:linkId', async (req, res) => {
     const linkId = new mongoose.Types.ObjectId(req.params.linkId);
 
     const deletedInstance = await Link.findOneAndDelete(
         { _id: linkId }
     );
 
-    res.json(deletedInstance);
+    res.send(deletedInstance);
 });
 
-router.delete('/:nodeId', async (req, res) => {
+router.delete('/deleteNode/:nodeId', async (req, res) => {
     const nodeId = new mongoose.Types.ObjectId(req.params.nodeId);
 
     await Node.findOneAndDelete(
         { _id: nodeId }
     )
     .then(deletedNode => {
-        winston.info("Deletion was successful for: ", deletedNode);
-        res.status(500).send("Deletion was successful for: ", deletedNode);
+        winston.info(`Deletion was successful for: ${deletedNode}`);
+        res.send('Deletion was successful!');
     })
     .catch(err => {
-        winston.info("Deletion was unsuccessful for: ", err);
-        res.status(500).send("Deletion was unsuccessful for: ", err);
+        winston.info(`Deletion was unsuccessful for: ${err}`);
+        res.status(404).send('Deletion was unsuccessful!');
     });
 });
 
@@ -111,7 +118,7 @@ router.delete('/deleteIsolatedNodes', async (req, res) => {
 
     if (typeof startNode !== 'undefined') {
         let deletedInstances = [];
-        for (const element of getIsolatedNodes(nodes, links, nodes[0])) {
+        for (const element of getIsolatedNodes(nodes, links, startNode)) {
             const deletedNode = await Node.findOneAndDelete(
                 { _id: element._id }
             );
@@ -139,6 +146,43 @@ router.delete('/deleteDependencyTree/:startNode', async (req, res) => {
     }
 
     res.send(deletedInstances);
-}); 
+});
+
+// UPDATE
+/* router.put('/updateLinkToNode/:id', async (req, res) => {
+    const link = await Link.findById(req.params.id);
+    const newToNode = await Node.findById(req.body.toNode);
+    const oldToNode = await Node.findById(link.to);
+
+    oldToNode.updateOne({}, {
+        $pull: {
+           inLinks: { $in: [link.id] }
+       }
+    });
+
+    newToNode.inLinks.push(link.id);
+
+    link.to = newToNode.id;
+
+    res.send(link);
+});
+
+router.put('/updateLinkFromNode/:id', async (req, res) => {
+    const link = await Link.findById(req.params.id);
+    const newFromNode = await Node.findById(req.body.fromNode);
+    const oldFromNode = await Node.findById(link.from);
+
+    oldFromNode.updateOne({}, {
+        $pull: {
+           outLinks: { $in: [link.id] }
+       }
+    });
+
+    newFromNode.outLinks.push(link.id);
+
+    link.from = newFromNode.id;
+
+    res.send(link);
+}); */
 
 module.exports = router; 

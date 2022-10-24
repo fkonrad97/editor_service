@@ -6,6 +6,11 @@ const nodeSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    story: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Story',
+        required: true
+    },
     nodeStory: {
         type: String,
         required: true
@@ -27,21 +32,24 @@ const nodeSchema = new mongoose.Schema({
 /**
  * findOneAndDelete
  */
-// NEEDS TO BE TESTED 
 nodeSchema.post('findOneAndDelete', async function(doc, next) {
     const nodeId = doc.id;
     console.log(`NodeSchema "findOneAndDelete" has been triggered for Node: {${nodeId}}...`);
 
     const relatedLinks = doc.inLinks.concat(doc.outLinks);
-    console.log(relatedLinks);
 
-    const Link = mongoose.model("Links");
-    for (const link of relatedLinks) {
-        await Link.findOneAndDelete(
-            { _id: link }
-        );
+    if (relatedLinks.length > 0) {
+        const Link = mongoose.model("Links");
+        for (const link of relatedLinks) {
+            try {
+                await Link.findOneAndDelete(
+                    { _id: link }
+                );
+            } catch(error) {
+                winston.info(`Could not remove Node: {${nodeId}} from Link's reference list properties.`, error);
+            }
+        }
     }
-    console.log("Deletion done.");
 
     next();
   });
@@ -50,7 +58,9 @@ nodeSchema.post('findOneAndDelete', async function(doc) {
     const nodeId = doc.id;
 
     const Story = mongoose.model("Stories");
-    await Story.updateMany({}, {
+    await Story.updateMany({
+        _id: doc.story
+    }, {
          $pull: {
             nodes: { $in: [nodeId] }
         }
@@ -67,7 +77,9 @@ nodeSchema.post('save', async function(doc) {
     console.log(`NodeSchema post middleware "save" has been triggered for Node: {${nodeId}} after it has been saved to the DB...`);
 
     const Story = mongoose.model("Stories");
-    await Story.updateMany({}, {
+    await Story.updateMany({
+        _id: doc.story
+    }, {
          $push: {
             nodes: nodeId
         }
