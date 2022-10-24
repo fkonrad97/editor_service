@@ -76,31 +76,5 @@ function getDependentBranch(nodes, links, startNode) {  // Looking for optimaliz
     return dependentNodes;
 }
 
-/**
- * 
- * @param {*} selectedNode 
- * @returns 
- */
-async function deleteNode(selectedNode) {
-    for (const link of selectedNode.inLinks) {
-        await Link.findOneAndDelete(
-            { _id: link }
-        );
-    }
-
-    for (const link of selectedNode.outLinks) {
-        await Link.findOneAndDelete(
-            { _id: link }
-        );
-    }
-
-    const deletedNode = await Node.findOneAndDelete(
-        { _id: selectedNode._id }
-    );
-
-    return deletedNode;
-}
-
 exports.getIsolatedNodes = getIsolatedNodes;
 exports.getDependentBranch = getDependentBranch;
-exports.deleteNode = deleteNode;
