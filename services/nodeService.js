@@ -2,10 +2,10 @@ const Node = require('../models/node');
 const Link = require('../models/link');  
 
 /**
- * Breadth First Search
+ * Breadth First Traversal
  * @param {[Node]} nodes - all nodes
  * @param {Node} startNode 
- * @returns 
+ * @returns {[Node]}
  */
 function bfsAlgo(nodes, links, startNode) {
     let queue = [startNode];
@@ -24,15 +24,24 @@ function bfsAlgo(nodes, links, startNode) {
     return connectedNodes;
 }
 
+/**
+ * Returns with all the Nodes which does not have any connection to the main story line which starts from the given startNode. 
+ * If the whole graph is connected, so no isolated nodes, then returns with an empty array.
+ * @param {[Node]} nodes 
+ * @param {[Link]} links 
+ * @param {Node} startNode 
+ * @returns {[Node]}
+ */
 function getIsolatedNodes(nodes, links, startNode) {
     return nodes.filter(x => !bfsAlgo(nodes, links, startNode).includes(x));
 }
 
 /**
- * 
- * @param { [Node] } nodes 
- * @param { Node } startNode
- * @returns { [Node] }
+ * Returns with all the nodes which are dependent from the given startNode. 
+ * One node is dependent if it depends only on the given startNode or on other dependent nodes.
+ * @param {[Node]} nodes 
+ * @param {Node} startNode
+ * @returns {[Node]}
  */
 function getDependentBranch(nodes, links, startNode) {  // Looking for optimalization options
     let queue = [startNode];

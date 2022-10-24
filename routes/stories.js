@@ -7,8 +7,14 @@ const express = require('express');
 const { getIsolatedNodes, getDependentBranch } = require('../services/nodeService');
 const router = express.Router();
 
+/**
+ * Temporary solution for selecting a current story.
+ */
 let currentStory = null;    // figure it out how to do it
 
+/**
+ * To select a current story.
+ */
 router.get('/selectStory', async (req, res) => {
     currentStory = await Story.findOne({ title: req.body.title });
 
@@ -19,11 +25,17 @@ router.get('/selectStory', async (req, res) => {
     }
 });
 
+/**
+ * To get all Story documents from DB.
+ */
 router.get('/', async (req, res) => {
     const stories = await Story.find();
     res.send(stories);
 });
 
+/**
+ * To create a new story.
+ */
 router.post('/createStory/:title', async (req, res) => {
     const story = new Story({
         title: req.params.title
@@ -41,6 +53,10 @@ router.post('/createStory/:title', async (req, res) => {
     });
 });
 
+/**
+ * To create a new node.
+ * 'Node.save' has post middleware.
+ */
 router.post('/addNode', async (req, res) => {
     if (currentStory === null) return res.status(404).send('Story has not been selected!');
 
@@ -60,6 +76,10 @@ router.post('/addNode', async (req, res) => {
     res.send(node);
 });
 
+/**
+ * To create a new link.
+ * 'Link.save' has post middlewares.
+ */
 router.post('/addLink', async (req, res) => {
     if (currentStory === null) return res.status(404).send('Story has not been selected!');
 
@@ -81,6 +101,10 @@ router.post('/addLink', async (req, res) => {
     }
 });
 
+/**
+ * To delete selected link.
+ * 'Link.findOneAndDelete' uses post middlewares.
+ */
 router.delete('/deleteLink/:linkId', async (req, res) => {
     if (currentStory === null) return res.status(404).send('Story has not been selected!');
 
@@ -93,6 +117,10 @@ router.delete('/deleteLink/:linkId', async (req, res) => {
     res.send(deletedInstance);
 });
 
+/**
+ * To delete selected node.
+ * 'Node.findOneAndDelete' uses post middlewares.
+ */
 router.delete('/deleteNode/:nodeId', async (req, res) => {
     if (currentStory === null) return res.status(404).send('Story has not been selected!');
 
@@ -111,6 +139,9 @@ router.delete('/deleteNode/:nodeId', async (req, res) => {
     });
 });
 
+/**
+ * To delete all nodes which are isolated from the main storyline.
+ */
 router.delete('/deleteIsolatedNodes', async (req, res) => {
     if (currentStory === null) return res.status(404).send('Story has not been selected!');
 
@@ -136,6 +167,9 @@ router.delete('/deleteIsolatedNodes', async (req, res) => {
     }
 });
 
+/**
+ * To delete all nodes and links which are depend on the 'startNode' argument.
+ */
 router.delete('/deleteDependencyTree/:startNode', async (req, res) => {
     if (currentStory === null) return res.status(404).send('Story has not been selected!');
 
@@ -160,6 +194,9 @@ router.delete('/deleteDependencyTree/:startNode', async (req, res) => {
     res.send(deletedInstances);
 });
 
+/**
+ * To update the selected link's 'to' property.
+ */
 router.put('/updateLinkToNode/:linkId', async (req, res) => {
     if (currentStory === null) return res.status(404).send('Story has not been selected!');
 
@@ -200,6 +237,9 @@ router.put('/updateLinkToNode/:linkId', async (req, res) => {
     res.send("Update was succesful!");
 });
 
+/**
+ * To update the selected link's 'from' property.
+ */
 router.put('/updateLinkFromNode/:linkId', async (req, res) => {
     if (currentStory === null) return res.status(404).send('Story has not been selected!');
 
@@ -240,6 +280,9 @@ router.put('/updateLinkFromNode/:linkId', async (req, res) => {
     res.send("Update was succesful!");
 });
 
+/**
+ * To update the selected node's text.
+ */
 router.put('/updateNodeStory/:nodeId', async (req, res) => {
     if (currentStory === null) return res.status(404).send('Story has not been selected!');
 

@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 const winston = require('winston');
 
+/**
+ * Story schema:
+ * - 'title': Title of the Story.
+ * - 'nodes': All nodes in the Story.
+ * - 'links': All nodes in the Link.
+ */
 const storySchema = new mongoose.Schema({
     title: {
         type: String,
