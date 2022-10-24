@@ -102,6 +102,20 @@ router.post('/addLink', async (req, res) => {
 });
 
 /**
+ * To delete selected Story.
+ * 'Story.findOneAndDelete' uses post middlewares.
+ */
+router.delete('/deleteStory/:storyId', async (req, res) => {
+    const storyId = new mongoose.Types.ObjectId(req.params.storyId);
+
+    const deletedInstance = await Story.findOneAndDelete(
+        { _id: storyId }
+    );
+
+    res.send(deletedInstance);
+});
+
+/**
  * To delete selected link.
  * 'Link.findOneAndDelete' uses post middlewares.
  */

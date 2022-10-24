@@ -32,7 +32,8 @@ const linkSchema = new mongoose.Schema({
 
 /**
  * 'findOneAndDelete' post hook
- * This one gets called right after the 'findOnAndDelete' is called and executed on a Link. It removes the Link's reference from all the related Nodes.
+ * This one gets called right after the 'findOnAndDelete' is called and executed on a Link. 
+ * It removes the Link's reference from all the related Nodes.
  */
 linkSchema.post('findOneAndDelete', async function(doc, next) {
     const linkId = doc.id;
@@ -55,7 +56,8 @@ linkSchema.post('findOneAndDelete', async function(doc, next) {
 
 /**
  * 'findOneAndDelete' post hook
- * This one gets called after the 'findOnAndDelete' post hook is called and executed on related Nodes. It removes the deleted Link's id from the including Story.
+ * This one gets called after the 'findOnAndDelete' post hook is called and executed on related Nodes. 
+ * It removes the deleted Link's id from the including Story.
  */
 linkSchema.post('findOneAndDelete', async function(doc) {
     const linkId = doc.id;
