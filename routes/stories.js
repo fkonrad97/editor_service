@@ -86,6 +86,8 @@ router.post('/addLink', async (req, res) => {
 
 // DELETION
 router.delete('/deleteLink/:linkId', async (req, res) => {
+    if (currentStory === null) return res.status(404).send('Story has not been selected!');
+
     const linkId = new mongoose.Types.ObjectId(req.params.linkId);
 
     const deletedInstance = await Link.findOneAndDelete(
@@ -96,6 +98,8 @@ router.delete('/deleteLink/:linkId', async (req, res) => {
 });
 
 router.delete('/deleteNode/:nodeId', async (req, res) => {
+    if (currentStory === null) return res.status(404).send('Story has not been selected!');
+
     const nodeId = new mongoose.Types.ObjectId(req.params.nodeId);
 
     await Node.findOneAndDelete(
@@ -112,6 +116,8 @@ router.delete('/deleteNode/:nodeId', async (req, res) => {
 });
 
 router.delete('/deleteIsolatedNodes', async (req, res) => {
+    if (currentStory === null) return res.status(404).send('Story has not been selected!');
+
     const nodes = await Node.find();
     const links = await Link.find();
     const startNode = nodes.find(node => node.startingNode == true);
@@ -131,9 +137,15 @@ router.delete('/deleteIsolatedNodes', async (req, res) => {
 });
 
 router.delete('/deleteDependencyTree/:startNode', async (req, res) => {
-    const nodes = await Node.find();
-    const links = await Link.find();
+    if (currentStory === null) return res.status(404).send('Story has not been selected!');
+
     const startNode = await Node.findById(req.params.startNode);
+    const nodes = await Node.find({
+        story: currentStory.id
+    });
+    const links = await Link.find({
+        story: currentStory.id
+    });
 
     const dependentNodes = getDependentBranch(nodes, links, startNode);
     console.log(dependentNodes);  
