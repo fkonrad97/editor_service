@@ -124,5 +124,7 @@ linkSchema.post('save', async function(doc) {
 
 const Link = mongoose.model('Links', linkSchema);
 
-exports.linkSchema = linkSchema;
-module.exports = Link;
+module.exports = {
+    linkSchema,
+    Link
+  };

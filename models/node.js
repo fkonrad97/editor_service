@@ -106,5 +106,7 @@ nodeSchema.post('save', async function(doc) {
 
 const Node = mongoose.model('Nodes', nodeSchema);
 
-exports.nodeSchema = nodeSchema;
-module.exports = Node;
+module.exports = {
+    nodeSchema,
+    Node
+  };
