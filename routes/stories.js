@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const winston = require('winston');
-const Node = require('../models/node');
-const Link = require('../models/link');  
+const { Node } = require('../models/node');
+const { Link } = require('../models/link');  
 const Story = require('../models/story'); 
 const express = require('express');
 const { getIsolatedNodes, getDependentBranch } = require('../services/nodeService');
