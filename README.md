@@ -22,3 +22,4 @@ NEWS:
 -https://itnext.io/storage-dapp-using-solidity-and-ipfs-62cf371b77dc
 -https://www.youtube.com/watch?v=RMlo9_wfKYU&ab_channel=Polycode
 -https://docs.ipfs.tech/concepts/what-is-ipfs/#decentralization
+-https://www.freecodecamp.org/news/how-to-design-a-secure-backend-for-your-decentralized-application-9541b5d8bddb/
