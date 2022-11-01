@@ -16,3 +16,8 @@ Difference between module.exports and exports:
 https://stackoverflow.com/questions/11904159/automatically-remove-referencing-objects-on-deletion-in-mongodb
 
 https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
+
+NEWS: 
+-https://www.smashingmagazine.com/2021/01/nodejs-api-ethereum-blockchain/
+-https://itnext.io/storage-dapp-using-solidity-and-ipfs-62cf371b77dc
+-https://www.youtube.com/watch?v=RMlo9_wfKYU&ab_channel=Polycode
