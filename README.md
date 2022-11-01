@@ -21,3 +21,4 @@ NEWS:
 -https://www.smashingmagazine.com/2021/01/nodejs-api-ethereum-blockchain/
 -https://itnext.io/storage-dapp-using-solidity-and-ipfs-62cf371b77dc
 -https://www.youtube.com/watch?v=RMlo9_wfKYU&ab_channel=Polycode
+-https://docs.ipfs.tech/concepts/what-is-ipfs/#decentralization
