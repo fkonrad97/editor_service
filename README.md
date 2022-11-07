@@ -23,3 +23,4 @@ NEWS:
 -https://www.youtube.com/watch?v=RMlo9_wfKYU&ab_channel=Polycode
 -https://docs.ipfs.tech/concepts/what-is-ipfs/#decentralization
 -https://www.freecodecamp.org/news/how-to-design-a-secure-backend-for-your-decentralized-application-9541b5d8bddb/
+-https://www.freecodecamp.org/news/how-to-make-an-nft-and-render-on-opensea-marketplace/#:~:text=come%20into%20play.-,TokenURI,hash%2C%20or%20anything%20else%20unique.
