@@ -1,14 +1,10 @@
-const mongoose = require('mongoose');
-const winston = require('winston');
 const { Node }  = require('../models/node');
 const { Link } = require('../models/link');  
 const Story = require('../models/story');
 const { DeployedStory } = require('../models/deployedStory');
 const express = require('express');
 const router = express.Router();
-const { ethers } = require("hardhat");
 require("dotenv").config();
-const contract = require("../artifacts/contracts/StoryNFT.sol/StoryNFT.json");
 
 
 router.get('/', async (req, res) => {
@@ -61,7 +57,7 @@ router.post('/finalize/:storyId', async (req, res) => {
 router.get('/deployNFT', async (req, res) => {
     var exec = require('child_process').exec;
 
-    exec(`npx hardhat run scripts/deploy.js --network goerli`,
+    exec(`npx hardhat deploy --network goerli`,
         function (error, stdout, stderr) {
             console.log(stdout);
             console.log(stderr);

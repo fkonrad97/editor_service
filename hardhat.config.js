@@ -1,6 +1,7 @@
 require('dotenv').config();
 require("@nomicfoundation/hardhat-toolbox");
-require("./tasks/mint");
+require("./web3module/tasks/mint");
+require("./web3module/tasks/deploy");
 
 // Go to https://www.alchemyapi.io, sign up, create
 // a new App in its dashboard, and replace "KEY" with its key
@@ -15,6 +16,12 @@ const GOERLI_PRIVATE_KEY = process.env.GOERLI_PRIVATE_KEY;
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: "0.8.17",
+  paths: {
+    sources: "./web3module",
+    tests: "./web3module/test",
+    cache: "./web3module/cache",
+    artifacts: "./web3module/artifacts"
+  },
   networks: {
     goerli: {
       url: `https://eth-goerli.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,

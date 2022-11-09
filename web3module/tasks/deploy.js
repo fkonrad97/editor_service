@@ -1,4 +1,5 @@
-async function main() {
+task("deploy", "Mint a StoryNFT token to the given account")
+  .setAction(async (taskArgs) => {
     const [deployer] = await ethers.getSigners();
   
     console.log("Deploying contracts with the account:", deployer.address);
@@ -11,11 +12,5 @@ async function main() {
     await storyNFTToken.deployed();
 
     console.log("Token address:", storyNFTToken.address);
-  }
-  
-  main()
-    .then(() => process.exit(0))
-    .catch((error) => {
-      console.error(error);
-      process.exit(1);
-    });
+  } 
+);
