@@ -23,7 +23,8 @@ NEWS:
 -https://www.youtube.com/watch?v=RMlo9_wfKYU&ab_channel=Polycode
 -https://docs.ipfs.tech/concepts/what-is-ipfs/#decentralization
 -https://www.freecodecamp.org/news/how-to-design-a-secure-backend-for-your-decentralized-application-9541b5d8bddb/
-
 Error: {Error [ERR_PACKAGE_PATH_NOT_EXPORTED]: No "exports" main defined in node_modules/ipfs/package.json} : https://github.com/ipfs/js-ipfs/blob/master/docs/upgrading/v0.62-v0.63.md#esm
 
 IPFS: https://docs.ipfs.tech/basics/js/js-ipfs/#spawn-a-node
+
+-https://www.freecodecamp.org/news/how-to-make-an-nft-and-render-on-opensea-marketplace/#:~:text=come%20into%20play.-,TokenURI,hash%2C%20or%20anything%20else%20unique.
