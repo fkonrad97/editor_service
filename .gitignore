@@ -10,5 +10,5 @@ typechain-types
 
 #Hardhat files
 cache
-web3module/artifact/build-info
+web3module/artifacts/build-info
 web3module/artifacts/@openzeppelin
