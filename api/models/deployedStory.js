@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 
 /**
- * DeployedStory schema:
+ * DeployedStory schema: After the Story uploaded to IPFS, 
+ * then the mongoDB database will store the Story's id and the CID from IPFS.
  */
 const deployedStorySchema = new mongoose.Schema({
     _id: {

@@ -1,3 +1,10 @@
+/**
+ * 'finalizeStory' function puts Story, Nodes and Links together into one object to be ready to upload to IPFS
+ * @param {Story} story 
+ * @param {[Node]} storyNodes 
+ * @param {[Link]} storyLinks 
+ * @returns 
+ */
 function finalizeStory(story, storyNodes, storyLinks) {
     let nodesArr = [];
 

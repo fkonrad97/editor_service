@@ -7,12 +7,17 @@ const express = require('express');
 const router = express.Router();
 require("dotenv").config();
 
-
+/**
+ * Gets all DeployedStory from MongoDB
+ */
 router.get('/', async (req, res) => {
     const deployedstories = await DeployedStory.find();
     res.send(deployedstories);
 });
 
+/**
+ * Puts together the parts of the Story and uploads it to IPFS and removes all parts from MongoDB
+ */
 router.post('/toIPFS/:storyId', async (req, res) => {
     const { create } = await import('ipfs-core');
 
@@ -48,10 +53,13 @@ router.post('/toIPFS/:storyId', async (req, res) => {
     res.send(deployedStory);
 });
 
-router.get('/deployNFT', async (req, res) => {
+/**
+ * Mints an NFT with the Story's tokenURI
+ */
+router.get('/mint/:cid', async (req, res) => {
     var exec = require('child_process').exec;
 
-    exec(`npx hardhat deploy --network goerli`,
+    exec(`npx hardhat mint --tokenuri https://ipfs.io/ipfs/${req.params.cid} --network goerli`,
         function (error, stdout, stderr) {
             console.log(stdout);
             console.log(stderr);
@@ -62,10 +70,13 @@ router.get('/deployNFT', async (req, res) => {
         });
 });
 
-router.get('/mint/:cid', async (req, res) => {
+/**
+ * Deploys the smart contract
+ */
+router.get('/deployNFT', async (req, res) => {
     var exec = require('child_process').exec;
 
-    exec(`npx hardhat mint --tokenuri https://ipfs.io/ipfs/${req.params.cid} --network goerli`,
+    exec(`npx hardhat deploy --network goerli`,
         function (error, stdout, stderr) {
             console.log(stdout);
             console.log(stderr);
