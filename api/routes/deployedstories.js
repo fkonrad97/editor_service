@@ -2,6 +2,7 @@ const { Node }  = require('../models/node');
 const { Link } = require('../models/link');  
 const Story = require('../models/story');
 const { DeployedStory } = require('../models/deployedStory');
+const { finalizeStory } = require('../services/deployService')
 const express = require('express');
 const router = express.Router();
 require("dotenv").config();
@@ -12,7 +13,9 @@ router.get('/', async (req, res) => {
     res.send(deployedstories);
 });
 
-router.post('/finalize/:storyId', async (req, res) => {
+router.post('/toIPFS/:storyId', async (req, res) => {
+    const { create } = await import('ipfs-core');
+
     const story = await Story.findOne({
         _id: req.params.storyId
     });
@@ -25,33 +28,24 @@ router.post('/finalize/:storyId', async (req, res) => {
         $in: story.links
     });
 
+    const finalizedStory = finalizeStory(story, storyNodes, storyLinks);
+    const finalizedStoryJSON = JSON.stringify(finalizedStory);
+
+    const node = await create({repo: 'ok' + Math.random()});
+
+    const { cid } = await node.add(finalizedStoryJSON);
+    console.info("IPFS id: ", cid);
+
+    await Story.findByIdAndDelete(story.id);
+
     const deployedStory = new DeployedStory({
-        title: story.title,
-        editStoryID: story.id
+        _id: finalizedStory.storyId,
+        cid: cid
     });
-
-    for(const element of storyNodes) {
-        deployedStory.nodes.push({
-            id: element.id,
-            startingNode: element.startingNode,
-            nodeStory: element.nodeStory,
-            inLinks: element.inLinks,
-            outLinks: element.outLinks
-        });
-    }
-
-    for(const element of storyLinks) {
-        deployedStory.links.push({
-            id: element.id,
-            decisionText: element.decisionText,
-            from: element.from,
-            to: element.to
-        });
-    }
 
     await deployedStory.save();
 
-    res.send("Save success!");
+    res.send(deployedStory);
 });
 
 router.get('/deployNFT', async (req, res) => {
@@ -66,20 +60,6 @@ router.get('/deployNFT', async (req, res) => {
             }
             res.send(stdout.toString());
         });
-});
-
-router.get('/uploadStory/:storyId', async (req, res) => {
-    const story = await DeployedStory.findOne({
-        _id: req.params.storyId
-    });
-
-    const { create } = await import('ipfs-core');
-    const node = await create();
-
-    const { cid } = await node.add(JSON.stringify(story));
-    console.info("IPFS id: ", cid);
-
-    res.send(cid);
 });
 
 router.get('/mint/:cid', async (req, res) => {
