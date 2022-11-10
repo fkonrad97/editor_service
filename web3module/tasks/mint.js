@@ -1,5 +1,9 @@
 const contract = require("../artifacts/web3module/contracts/StoryNFT.sol/StoryNFT.json");
 
+/**
+ * Hardhat custom task to mint from StoryNFT
+ * 'npx hardhat mint --tokenuri ${CID} --network goerli'
+ */
 task("mint", "Mint a StoryNFT token to the given account")
   .addParam("tokenuri", "The Story's CID")
   .setAction(async (taskArgs) => {

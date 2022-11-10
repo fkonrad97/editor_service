@@ -1,3 +1,7 @@
+/**
+ * Hardhat custom task to deploy StoryNFT
+ * 'npx hardhat deploy --network goerli'
+ */
 task("deploy", "Mint a StoryNFT token to the given account")
   .setAction(async (taskArgs) => {
     const [deployer] = await ethers.getSigners();
