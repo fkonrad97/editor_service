@@ -2,9 +2,10 @@ const mongoose = require('mongoose');
 const winston = require('winston');
 const { Node } = require('../models/node');
 const { Link } = require('../models/link');  
-const Story = require('../models/story'); 
+const { Story } = require('../models/story'); 
 const express = require('express');
-const { getIsolatedNodes, getDependentBranch } = require('../services/nodeService');
+const { getIsolatedNodes, getDependentBranch, loadStory, mergeStories } = require('../services/nodeService');
+const { DeployedStory } = require('../models/deployedStory');
 const router = express.Router();
 
 /**
@@ -16,13 +17,27 @@ let currentStory = null;    // figure it out how to do it
  * To select a current story.
  */
 router.get('/selectStory', async (req, res) => {
-    currentStory = await Story.findOne({ title: req.body.title });
+    currentStory = null;
 
-    if (currentStory !== null) {
-        res.send(`Selected Story: ${currentStory.title}`);
-    } else {
-        res.status(404).send(`${req.body.title} can not be found!`);
-    }
+    const story = await Story.findOne({
+        title: req.body.title
+    });
+
+    const storyNodes = await Node.find({
+        story: story.id,
+        $in: story.nodes
+    });
+
+    const storyLinks = await Link.find({
+        story: story.id,
+        $in: story.links
+    });
+
+    currentStory = await loadStory(story, storyNodes, storyLinks);
+
+    //currentStory = mergeStories(currentStory);
+
+    res.send(currentStory);
 });
 
 /**
@@ -60,9 +75,11 @@ router.post('/createStory/:title', async (req, res) => {
 router.post('/addNode', async (req, res) => {
     if (currentStory === null) return res.status(404).send('Story has not been selected!');
 
+    console.log(currentStory.storyId);
+
     const node = new Node({
         startingNode: req.body.startingNode,
-        story: currentStory.id,
+        story: currentStory.storyId,
         nodeStory: req.body.nodeStory
     });
 
@@ -89,7 +106,7 @@ router.post('/addLink', async (req, res) => {
     if (fromNode.story.equals(toNode.story)) {
         const link = new Link({
             decisionText: req.body.decisionText,
-            story: currentStory.id,
+            story: currentStory.storyId,
             from: fromNode,
             to: toNode
         })
@@ -102,110 +119,53 @@ router.post('/addLink', async (req, res) => {
 });
 
 /**
- * To delete selected Story.
- * 'Story.findOneAndDelete' uses post middlewares.
+ * Add parent stories to the current story.
  */
-router.delete('/deleteStory/:storyId', async (req, res) => {
-    const storyId = new mongoose.Types.ObjectId(req.params.storyId);
-
-    const deletedInstance = await Story.findOneAndDelete(
-        { _id: storyId }
-    );
-
-    res.send(deletedInstance);
-});
-
-/**
- * To delete selected link.
- * 'Link.findOneAndDelete' uses post middlewares.
- */
-router.delete('/deleteLink/:linkId', async (req, res) => {
+ router.put('/addParentStory/:storyId', async (req, res) => {
     if (currentStory === null) return res.status(404).send('Story has not been selected!');
 
-    const linkId = new mongoose.Types.ObjectId(req.params.linkId);
+    const story = await DeployedStory.findOne({
+        _id: req.params.storyId
+    });
 
-    const deletedInstance = await Link.findOneAndDelete(
-        { _id: linkId }
-    );
-
-    res.send(deletedInstance);
-});
-
-/**
- * To delete selected node.
- * 'Node.findOneAndDelete' uses post middlewares.
- */
-router.delete('/deleteNode/:nodeId', async (req, res) => {
-    if (currentStory === null) return res.status(404).send('Story has not been selected!');
-
-    const nodeId = new mongoose.Types.ObjectId(req.params.nodeId);
-
-    await Node.findOneAndDelete(
-        { _id: nodeId }
-    )
-    .then(deletedNode => {
-        winston.info(`Deletion was successful for: ${deletedNode}`);
-        res.send('Deletion was successful!');
+    await Story.updateOne({
+        _id: currentStory.storyId
+    }, {
+        $push: {
+            parentCIDs: story.cid
+        }
     })
-    .catch(err => {
-        winston.info(`Deletion was unsuccessful for: ${err}`);
-        res.status(404).send('Deletion was unsuccessful!');
-    });
+    .then(() => {
+        winston.info("Parent story added! ", res);
+    })
+    .catch(err => winston.info(`Error has been caught during the update: ${err}`));
+
+    res.send(story.cid);
 });
 
 /**
- * To delete all nodes which are isolated from the main storyline.
+ * Delete parent stories to the current story.
  */
-router.delete('/deleteIsolatedNodes', async (req, res) => {
+ router.put('/deleteParentStory/:storyId', async (req, res) => {
     if (currentStory === null) return res.status(404).send('Story has not been selected!');
 
-    const nodes = await Node.find({ 
-        story: currentStory.id
-    });
-    const links = await Link.find({
-        story: currentStory.id
-    });
-    const startNode = nodes.find(node => node.startingNode == true);
-
-    if (typeof startNode !== 'undefined') {
-        let deletedInstances = [];
-        for (const element of getIsolatedNodes(nodes, links, startNode)) {
-            const deletedNode = await Node.findOneAndDelete(
-                { _id: element._id }
-            );
-            deletedInstances.push(deletedNode);
-        } 
-        res.send(deletedInstances);
-    } else {
-        res.status(404).send('Starting point not defined!');
-    }
-});
-
-/**
- * To delete all nodes and links which are depend on the 'startNode' argument.
- */
-router.delete('/deleteDependencyTree/:startNode', async (req, res) => {
-    if (currentStory === null) return res.status(404).send('Story has not been selected!');
-
-    const startNode = await Node.findById(req.params.startNode);
-    const nodes = await Node.find({ 
-        story: currentStory.id
-    });
-    const links = await Link.find({
-        story: currentStory.id
+    const story = await DeployedStory.findOne({
+        _id: req.params.storyId
     });
 
-    const dependentNodes = getDependentBranch(nodes, links, startNode);
-    console.log(dependentNodes);  
+    await Story.updateOne({
+        _id: currentStory.storyId
+    }, {
+        $pull: {
+            parentCIDs: story.cid
+        }
+    })
+    .then(() => {
+        winston.info("Parent story deleted! ", res);
+    })
+    .catch(err => winston.info(`Error has been caught during the update: ${err}`));
 
-    let deletedInstances = [];
-    for (const element of dependentNodes) {
-        deletedInstances.push(await Node.findOneAndDelete(
-            { _id: element.id }
-        ));
-    }
-
-    res.send(deletedInstances);
+    res.send(story.cid);
 });
 
 /**
@@ -314,6 +274,113 @@ router.put('/updateNodeStory/:nodeId', async (req, res) => {
     .catch(err => winston.info(`Error has been caught during updating the node's text: ${err}`));
 
     res.send("NodeStory update was succesful!");
+});
+
+/**
+ * To delete selected Story.
+ * 'Story.findOneAndDelete' uses post middlewares.
+ */
+router.delete('/deleteStory/:storyId', async (req, res) => {
+    const storyId = new mongoose.Types.ObjectId(req.params.storyId);
+
+    const deletedInstance = await Story.findOneAndDelete(
+        { _id: storyId }
+    );
+
+    res.send(deletedInstance);
+});
+
+/**
+ * To delete selected link.
+ * 'Link.findOneAndDelete' uses post middlewares.
+ */
+router.delete('/deleteLink/:linkId', async (req, res) => {
+    if (currentStory === null) return res.status(404).send('Story has not been selected!');
+
+    const linkId = new mongoose.Types.ObjectId(req.params.linkId);
+
+    const deletedInstance = await Link.findOneAndDelete(
+        { _id: linkId }
+    );
+
+    res.send(deletedInstance);
+});
+
+/**
+ * To delete selected node.
+ * 'Node.findOneAndDelete' uses post middlewares.
+ */
+router.delete('/deleteNode/:nodeId', async (req, res) => {
+    if (currentStory === null) return res.status(404).send('Story has not been selected!');
+
+    const nodeId = new mongoose.Types.ObjectId(req.params.nodeId);
+
+    await Node.findOneAndDelete(
+        { _id: nodeId }
+    )
+    .then(deletedNode => {
+        winston.info(`Deletion was successful for: ${deletedNode}`);
+        res.send('Deletion was successful!');
+    })
+    .catch(err => {
+        winston.info(`Deletion was unsuccessful for: ${err}`);
+        res.status(404).send('Deletion was unsuccessful!');
+    });
+});
+
+/**
+ * To delete all nodes which are isolated from the main storyline.
+ */
+router.delete('/deleteIsolatedNodes', async (req, res) => {
+    if (currentStory === null) return res.status(404).send('Story has not been selected!');
+
+    const nodes = await Node.find({ 
+        story: currentStory.storyId
+    });
+    const links = await Link.find({
+        story: currentStory.storyId
+    });
+    const startNode = nodes.find(node => node.startingNode == true);
+
+    if (typeof startNode !== 'undefined') {
+        let deletedInstances = [];
+        for (const element of getIsolatedNodes(nodes, links, startNode)) {
+            const deletedNode = await Node.findOneAndDelete(
+                { _id: element._id }
+            );
+            deletedInstances.push(deletedNode);
+        } 
+        res.send(deletedInstances);
+    } else {
+        res.status(404).send('Starting point not defined!');
+    }
+});
+
+/**
+ * To delete all nodes and links which are depend on the 'startNode' argument.
+ */
+router.delete('/deleteDependencyTree/:startNode', async (req, res) => {
+    if (currentStory === null) return res.status(404).send('Story has not been selected!');
+
+    const startNode = await Node.findById(req.params.startNode);
+    const nodes = await Node.find({ 
+        story: currentStory.storyId
+    });
+    const links = await Link.find({
+        story: currentStory.storyId
+    });
+
+    const dependentNodes = getDependentBranch(nodes, links, startNode);
+    console.log(dependentNodes);  
+
+    let deletedInstances = [];
+    for (const element of dependentNodes) {
+        deletedInstances.push(await Node.findOneAndDelete(
+            { _id: element.id }
+        ));
+    }
+
+    res.send(deletedInstances);
 });
 
 module.exports = router; 

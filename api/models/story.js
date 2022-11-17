@@ -13,6 +13,12 @@ const storySchema = new mongoose.Schema({
         required: true,
         unique: true
     },
+    parentCIDs: [
+        {
+            type: String,
+            unique: true    // Does not work on not ID, need to fix
+        }
+    ],
     nodes: [
         {
             type: mongoose.Schema.Types.ObjectId,
@@ -53,5 +59,7 @@ storySchema.post('findOneAndDelete', async function(doc) {
 
 const Story = mongoose.model('Stories', storySchema);
 
-exports.storySchema = storySchema;
-module.exports = Story;
+module.exports = {
+    storySchema,
+    Story
+  };

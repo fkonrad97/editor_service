@@ -28,3 +28,7 @@ Error: {Error [ERR_PACKAGE_PATH_NOT_EXPORTED]: No "exports" main defined in node
 IPFS: https://docs.ipfs.tech/basics/js/js-ipfs/#spawn-a-node
 
 -https://www.freecodecamp.org/news/how-to-make-an-nft-and-render-on-opensea-marketplace/#:~:text=come%20into%20play.-,TokenURI,hash%2C%20or%20anything%20else%20unique.
+
+
+NodeJS-Cache: https://www.npmjs.com/package/node-cache 
+https://www.digitalocean.com/community/tutorials/how-to-implement-caching-in-node-js-using-redis

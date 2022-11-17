@@ -14,6 +14,12 @@ const nodeSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    parentStories: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'ParentStories'
+        }
+    ],
     story: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Story',
