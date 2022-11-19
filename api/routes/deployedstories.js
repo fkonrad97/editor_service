@@ -19,7 +19,7 @@ router.get('/', async (req, res) => {
  * Puts together the parts of the Story and uploads it to IPFS and removes all parts from MongoDB
  */
 router.post('/toIPFS/:storyId', async (req, res) => {
-    const { create } = await import('ipfs-core');
+    const { create } = await import('ipfs-http-client');
 
     const story = await Story.findOne({
         _id: req.params.storyId
@@ -36,7 +36,7 @@ router.post('/toIPFS/:storyId', async (req, res) => {
     const finalizedStory = finalizeStory(story, storyNodes, storyLinks);
     const finalizedStoryJSON = JSON.stringify(finalizedStory);
 
-    const node = await create({repo: 'ok' + Math.random()});
+    const node = create();
 
     const { cid } = await node.add(finalizedStoryJSON);
     console.info("IPFS id: ", cid);
@@ -86,5 +86,9 @@ router.get('/deployNFT', async (req, res) => {
             res.send(stdout.toString());
         });
 });
+
+/*router.get('/loadParentStory/:storyId', async (req, res) => {
+    res.send(await retrieveStory(req.params.storyId));
+});*/
 
 module.exports = router; 

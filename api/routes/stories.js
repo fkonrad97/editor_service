@@ -2,9 +2,10 @@ const mongoose = require('mongoose');
 const winston = require('winston');
 const { Node } = require('../models/node');
 const { Link } = require('../models/link');  
-const Story = require('../models/story'); 
+const { Story } = require('../models/story'); 
 const express = require('express');
-const { getIsolatedNodes, getDependentBranch } = require('../services/nodeService');
+const { getIsolatedNodes, getDependentBranch, loadStory, mergeStories } = require('../services/nodeService');
+const { DeployedStory } = require('../models/deployedStory');
 const router = express.Router();
 
 /**
@@ -16,17 +17,29 @@ let currentStory = null;    // figure it out how to do it
  * To select a current story.
  */
 router.get('/selectStory', async (req, res) => {
-    currentStory = await Story.findOne({ title: req.body.title });
+    currentStory = null;
 
-    if (currentStory !== null) {
-        res.send(`Selected Story: ${currentStory.title}`);
-    } else {
-        res.status(404).send(`${req.body.title} can not be found!`);
-    }
+    const story = await Story.findOne({
+        title: req.body.title
+    });
+
+    const storyNodes = await Node.find({
+        story: story.id
+    });
+
+    const storyLinks = await Link.find({
+        story: story.id
+    });
+
+    currentStory = await loadStory(story, storyNodes, storyLinks);
+
+    //currentStory = mergeStories(currentStory);
+
+    res.send(currentStory);
 });
 
 /**
- * To get all Story documents from DB.
+ * Get all Story documents from DB.
  */
 router.get('/', async (req, res) => {
     const stories = await Story.find();
@@ -60,9 +73,11 @@ router.post('/createStory/:title', async (req, res) => {
 router.post('/addNode', async (req, res) => {
     if (currentStory === null) return res.status(404).send('Story has not been selected!');
 
+    console.log(currentStory.storyId);
+
     const node = new Node({
         startingNode: req.body.startingNode,
-        story: currentStory.id,
+        story: currentStory.storyId,
         nodeStory: req.body.nodeStory
     });
 
@@ -89,7 +104,7 @@ router.post('/addLink', async (req, res) => {
     if (fromNode.story.equals(toNode.story)) {
         const link = new Link({
             decisionText: req.body.decisionText,
-            story: currentStory.id,
+            story: currentStory.storyId,
             from: fromNode,
             to: toNode
         })
@@ -102,14 +117,119 @@ router.post('/addLink', async (req, res) => {
 });
 
 /**
+ * Add parent stories to the current story.
+ */
+ router.put('/addParentStory/:storyId', async (req, res) => {
+    if (currentStory === null) return res.status(404).send('Story has not been selected!');
+
+    const story = await DeployedStory.findOne({
+        _id: req.params.storyId
+    });
+
+    await Story.updateOne({
+        _id: currentStory.storyId
+    }, {
+        $push: {
+            parentCIDs: story.cid
+        }
+    })
+    .then(() => {
+        winston.info("Parent story added! ", res);
+    })
+    .catch(err => winston.info(`Error has been caught during the update: ${err}`));
+
+    res.send(story.cid);
+});
+
+/**
+ * Delete parent stories to the current story.
+ */
+ router.put('/deleteParentStory/:storyId', async (req, res) => {
+    if (currentStory === null) return res.status(404).send('Story has not been selected!');
+
+    const story = await DeployedStory.findOne({
+        _id: req.params.storyId
+    });
+
+    await Story.updateOne({
+        _id: currentStory.storyId
+    }, {
+        $pull: {
+            parentCIDs: story.cid
+        }
+    })
+    .then(() => {
+        winston.info("Parent story deleted! ", res);
+    })
+    .catch(err => winston.info(`Error has been caught during the update: ${err}`));
+
+    res.send(story.cid);
+});
+
+/**
+ * To update the selected link's 'to' property.
+ */
+router.put('/updateLinkToNode/:linkId', async (req, res) => {
+    if (currentStory === null) return res.status(404).send('Story has not been selected!');
+
+    await Link.updateOne({
+        _id: req.params.linkId
+    }, {
+        to: req.body.toNodeId
+    })
+    .then(() => {
+        winston.info('Update was succesful!');
+    })
+    .catch(err => winston.info(`Error has been caught during updating the Link's 'to' property: ${err}`));
+
+    res.send("Update was succesful!");
+});
+
+/**
+ * To update the selected link's 'from' property.
+ */
+router.put('/updateLinkFromNode/:linkId', async (req, res) => {
+    if (currentStory === null) return res.status(404).send('Story has not been selected!');
+
+    await Link.updateOne({
+        _id: req.params.linkId
+    }, {
+        from: req.body.fromNodeId
+    })
+    .then(() => {
+        winston.info('Update was succesful!');
+    })
+    .catch(err => winston.info(`Error has been caught during updating the Link's 'from' property: ${err}`));
+
+    res.send("Update was succesful!");
+});
+
+/**
+ * To update the selected node's text.
+ */
+router.put('/updateNodeStory/:nodeId', async (req, res) => {
+    if (currentStory === null) return res.status(404).send('Story has not been selected!');
+
+    await Node.updateOne({
+        _id: req.params.nodeId
+    }, {
+        nodeStory: req.body.text
+    })
+    .then(() => {
+        winston.info('NodeStory update was succesful!');
+    })
+    .catch(err => winston.info(`Error has been caught during updating the node's text: ${err}`));
+
+    res.send("NodeStory update was succesful!");
+});
+
+/**
  * To delete selected Story.
  * 'Story.findOneAndDelete' uses post middlewares.
  */
 router.delete('/deleteStory/:storyId', async (req, res) => {
-    const storyId = new mongoose.Types.ObjectId(req.params.storyId);
-
     const deletedInstance = await Story.findOneAndDelete(
-        { _id: storyId }
+        { _id: req.params.storyId }
     );
 
     res.send(deletedInstance);
@@ -122,10 +242,8 @@ router.delete('/deleteStory/:storyId', async (req, res) => {
 router.delete('/deleteLink/:linkId', async (req, res) => {
     if (currentStory === null) return res.status(404).send('Story has not been selected!');
 
-    const linkId = new mongoose.Types.ObjectId(req.params.linkId);
-
     const deletedInstance = await Link.findOneAndDelete(
-        { _id: linkId }
+        { _id: req.params.linkId }
     );
 
     res.send(deletedInstance);
@@ -138,10 +256,8 @@ router.delete('/deleteLink/:linkId', async (req, res) => {
 router.delete('/deleteNode/:nodeId', async (req, res) => {
     if (currentStory === null) return res.status(404).send('Story has not been selected!');
 
-    const nodeId = new mongoose.Types.ObjectId(req.params.nodeId);
-
     await Node.findOneAndDelete(
-        { _id: nodeId }
+        { _id: req.params.nodeId }
     )
     .then(deletedNode => {
         winston.info(`Deletion was successful for: ${deletedNode}`);
@@ -159,11 +275,11 @@ router.delete('/deleteNode/:nodeId', async (req, res) => {
 router.delete('/deleteIsolatedNodes', async (req, res) => {
     if (currentStory === null) return res.status(404).send('Story has not been selected!');
 
-    const nodes = await Node.find({ 
-        story: currentStory.id
+    const nodes = await Node.find({         // Replace it when caching is active
+        story: currentStory.storyId
     });
     const links = await Link.find({
-        story: currentStory.id
+        story: currentStory.storyId
     });
     const startNode = nodes.find(node => node.startingNode == true);
 
@@ -188,11 +304,11 @@ router.delete('/deleteDependencyTree/:startNode', async (req, res) => {
     if (currentStory === null) return res.status(404).send('Story has not been selected!');
 
     const startNode = await Node.findById(req.params.startNode);
-    const nodes = await Node.find({ 
-        story: currentStory.id
+    const nodes = await Node.find({     // Replace it when caching is active
+        story: currentStory.storyId
     });
     const links = await Link.find({
-        story: currentStory.id
+        story: currentStory.storyId
     });
 
     const dependentNodes = getDependentBranch(nodes, links, startNode);
@@ -206,114 +322,6 @@ router.delete('/deleteDependencyTree/:startNode', async (req, res) => {
     }
 
     res.send(deletedInstances);
-});
-
-/**
- * To update the selected link's 'to' property.
- */
-router.put('/updateLinkToNode/:linkId', async (req, res) => {
-    if (currentStory === null) return res.status(404).send('Story has not been selected!');
-
-    const link = await Link.findById(req.params.linkId);
-    const newToNode = await Node.findById(req.body.toNode);
-    const oldToNode = await Node.findById(link.to);
-
-    await Node.updateOne({
-        _id: oldToNode.id
-    }, {
-        $pull: {
-           inLinks: link.id
-       }
-    })
-    .then(() => {
-        Node.updateOne({
-            _id: newToNode.id
-        }, {
-            $push:  {
-                inLinks: link.id
-            }
-        })
-        .then(() => {
-            Link.updateOne({
-                _id: link.id
-            }, {
-                to: newToNode.id
-            })
-            .then(() => {
-                winston.info('Update was succesful!');
-            })
-            .catch(err => winston.info(`Error has been caught during updating the Link's 'to' property: ${err}`));
-        })
-        .catch(err => winston.info(`Error has been caught during updating the old 'outLinks' list: ${err}`));
-    })
-    .catch(err => winston.info(`Error has been caught during updating the old 'inLinks' list: ${err}`));
-
-    res.send("Update was succesful!");
-});
-
-/**
- * To update the selected link's 'from' property.
- */
-router.put('/updateLinkFromNode/:linkId', async (req, res) => {
-    if (currentStory === null) return res.status(404).send('Story has not been selected!');
-
-    const link = await Link.findById(req.params.linkId);
-    const newFromNode = await Node.findById(req.body.fromNode);
-    const oldFromNode = await Node.findById(link.from);
-
-    await Node.updateOne({
-        _id: oldFromNode.id
-    }, {
-        $pull: {
-           outLinks: link.id
-       }
-    })
-    .then(() => {
-        Node.updateOne({
-            _id: newFromNode.id
-        }, {
-            $push:  {
-                outLinks: link.id
-            }
-        })
-        .then(() => {
-            Link.updateOne({
-                _id: link.id
-            }, {
-                from: newFromNode.id
-            })
-            .then(() => {
-                winston.info('Update was succesful!');
-            })
-            .catch(err => winston.info(`Error has been caught during updating the Link's 'from' property: ${err}`));
-        })
-        .catch(err => winston.info(`Error has been caught during updating the old 'inLinks' list: ${err}`));
-    })
-    .catch(err => winston.info(`Error has been caught during updating the old 'outLinks' list: ${err}`));
-
-    res.send("Update was succesful!");
-});
-
-/**
- * To update the selected node's text.
- */
-router.put('/updateNodeStory/:nodeId', async (req, res) => {
-    if (currentStory === null) return res.status(404).send('Story has not been selected!');
-
-    const node = await Link.findById(req.params.nodeId);
-    const updatedText = req.body.text;
-
-    await Node.updateOne({
-        _id: node.id
-    }, {
-        nodeStory: updatedText
-    })
-    .then(() => {
-        winston.info('NodeStory update was succesful!');
-    })
-    .catch(err => winston.info(`Error has been caught during updating the node's text: ${err}`));
-
-    res.send("NodeStory update was succesful!");
 });
 
 module.exports = router; 

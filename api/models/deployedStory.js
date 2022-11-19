@@ -19,5 +19,5 @@ const DeployedStory = mongoose.model('DeployedStories', deployedStorySchema);
 
 module.exports = {
     deployedStorySchema,
-    DeployedStory,
+    DeployedStory
   };

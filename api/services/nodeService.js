@@ -85,5 +85,88 @@ function getDependentBranch(nodes, links, startNode) {  // Looking for optimaliz
     return dependentNodes;
 }
 
+// 1. Maybe would be better to use fetch the tokenURI from the NFT rather than searching for CID in the database
+// 2. Move the DAO calls out of the function
+async function retrieveStory(cid) {
+    const { create } = await import('ipfs-http-client');
+    const node = create();
+
+    const chunks = [];
+    for await (const chunk of node.cat(cid)) {
+        chunks.push(chunk);
+    }
+
+    const retrievedStoryJSON = JSON.parse(chunks.toString());
+
+    return retrievedStoryJSON;
+}
+
+/**
+ * Cache the selected story
+ * @param {Story} story 
+ * @param {Node} storyNodes 
+ * @param {Link} storyLinks 
+ * @returns A full object with the additional parent stories if they exist.
+ */
+async function loadStory(story, storyNodes, storyLinks) {
+    let nodesArr = [];
+    for(const element of storyNodes) {
+        nodesArr.push({
+            id: element.id,
+            startingNode: element.startingNode,
+            nodeStory: element.nodeStory,
+            inLinks: element.inLinks,
+            outLinks: element.outLinks
+        });
+    }
+
+    let linksArr = [];
+    for(const element of storyLinks) {
+        linksArr.push({
+            id: element.id,
+            decisionText: element.decisionText,
+            from: element.from,
+            to: element.to
+        });
+    }
+
+    let parentStoriesArr = [];
+    if (story.parentCIDs !== null) {
+        for await(const element of story.parentCIDs) {
+            parentStoriesArr.push(await retrieveStory(element));
+        }
+    }
+
+    const deployedStory = {
+        title: story.title,
+        storyId: story.id,
+        nodes: nodesArr,
+        links: linksArr,
+        parentStories: parentStoriesArr
+    }
+
+    return deployedStory;
+}
+
+// Needs to work on it
+async function mergeStories(storyObj) {
+    const parentStories = storyObj.parentStories;
+    const links = storyObj.links;
+
+    for (const link of links) {
+        for (const node of parentStories.nodes) {
+            if (link.from == node.id || link.to == node.id) {
+                node.links.push(link);
+            }
+        }
+    }
+
+    storyObj.parentStories = parentStories;
+    return storyObj;
+}
+
+exports.mergeStories = mergeStories;
+exports.loadStory = loadStory;
+exports.retrieveStory = retrieveStory;
 exports.getIsolatedNodes = getIsolatedNodes;
 exports.getDependentBranch = getDependentBranch;

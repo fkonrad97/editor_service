@@ -4,8 +4,6 @@ const winston = require('winston');
 /**
  * Story schema:
  * - 'title': Title of the Story.
- * - 'nodes': All nodes in the Story.
- * - 'links': All nodes in the Link.
  */
 const storySchema = new mongoose.Schema({
     title: {
@@ -13,16 +11,10 @@ const storySchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    nodes: [
+    parentCIDs: [
         {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Node'
-        }
-    ],
-    links: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Link'
+            ref: 'ParentStories'
         }
     ]
 });
@@ -53,5 +45,7 @@ storySchema.post('findOneAndDelete', async function(doc) {
 
 const Story = mongoose.model('Stories', storySchema);
 
-exports.storySchema = storySchema;
-module.exports = Story;
+module.exports = {
+    storySchema,
+    Story
+  };
