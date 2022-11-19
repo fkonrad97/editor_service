@@ -91,10 +91,6 @@ async function retrieveStory(cid) {
     const { create } = await import('ipfs-http-client');
     const node = create();
 
-    /*const deployedStory = await DeployedStory.findOne({
-        _id: storyId
-    });*/
-
     const chunks = [];
     for await (const chunk of node.cat(cid)) {
         chunks.push(chunk);
@@ -109,7 +105,7 @@ async function retrieveStory(cid) {
  * Cache the selected story
  * @param {Story} story 
  * @param {Node} storyNodes 
- * @param {Link}} storyLinks 
+ * @param {Link} storyLinks 
  * @returns A full object with the additional parent stories if they exist.
  */
 async function loadStory(story, storyNodes, storyLinks) {

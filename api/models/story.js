@@ -4,8 +4,6 @@ const winston = require('winston');
 /**
  * Story schema:
  * - 'title': Title of the Story.
- * - 'nodes': All nodes in the Story.
- * - 'links': All nodes in the Link.
  */
 const storySchema = new mongoose.Schema({
     title: {
@@ -15,20 +13,8 @@ const storySchema = new mongoose.Schema({
     },
     parentCIDs: [
         {
-            type: String,
-            unique: true    // Does not work on not ID, need to fix
-        }
-    ],
-    nodes: [
-        {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Node'
-        }
-    ],
-    links: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Link'
+            ref: 'ParentStories'
         }
     ]
 });
