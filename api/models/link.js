@@ -6,7 +6,7 @@ const winston = require('winston');
  * - 'decisionText': The text of the decision(link).
  * - 'story': The including Story's reference id.
  * - 'from': From which node the Link coming from.
- * - 'to': To which node is the Link going.
+ * - 'to': To which node is the Link going. 
  */
 const linkSchema = new mongoose.Schema({
     decisionText: {
