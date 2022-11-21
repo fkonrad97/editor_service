@@ -14,7 +14,7 @@ const storySchema = new mongoose.Schema({
     parentCIDs: [
         {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'ParentStories'
+            ref: 'parentCIDs'
         }
     ]
 });

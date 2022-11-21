@@ -4,9 +4,39 @@ const { Node } = require('../models/node');
 const { Link } = require('../models/link');  
 const { Story } = require('../models/story'); 
 const express = require('express');
-const { getIsolatedNodes, getDependentBranch, loadStory, mergeStories } = require('../services/nodeService');
+const { getIsolatedNodes, getDependentBranch, loadStory, retrieveStory } = require('../services/nodeService');
 const { DeployedStory } = require('../models/deployedStory');
 const router = express.Router();
+const CachedStory = require('../services/cacheService');
+
+// CHECK WHAT IS 'FOR AWAIT' FOR
+
+router.get('/test/:title', async (req, res) => {
+    const story = await Story.findOne({
+        title: req.params.title
+    });
+
+    const storyNodes = await Node.find({
+        story: story.id
+    });
+
+    const storyLinks = await Link.find({
+        story: story.id
+    });
+
+    const parentStories = [];   
+    if (story.parentCIDs !== null) {
+        for await(const element of story.parentCIDs) {
+            parentStories.push(await retrieveStory(element));
+        }
+    }
+
+    let testStory = new CachedStory(story, storyNodes, storyLinks, parentStories);
+    
+    console.log(testStory);
+
+    res.send(testStory);
+});
 
 /**
  * Temporary solution for selecting a current story.
@@ -33,7 +63,7 @@ router.get('/selectStory', async (req, res) => {
 
     currentStory = await loadStory(story, storyNodes, storyLinks);
 
-    //currentStory = mergeStories(currentStory);
+    // currentStory = mergeStories(currentStory);
 
     res.send(currentStory);
 });
@@ -278,14 +308,12 @@ router.delete('/deleteIsolatedNodes', async (req, res) => {
     const nodes = await Node.find({         // Replace it when caching is active
         story: currentStory.storyId
     });
-    const links = await Link.find({
-        story: currentStory.storyId
-    });
+
     const startNode = nodes.find(node => node.startingNode == true);
 
     if (typeof startNode !== 'undefined') {
         let deletedInstances = [];
-        for (const element of getIsolatedNodes(nodes, links, startNode)) {
+        for (const element of getIsolatedNodes(nodes, startNode)) {
             const deletedNode = await Node.findOneAndDelete(
                 { _id: element._id }
             );

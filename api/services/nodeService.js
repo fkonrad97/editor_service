@@ -1,5 +1,30 @@
-const Node = require('../models/node');
-const Link = require('../models/link');  
+const { Node } = require('../models/node');
+const { Link } = require('../models/link');  
+
+/**
+ * Returns all links which goes out from the given node
+ * @param {Node} node 
+ * @returns {[Node]}
+ */
+async function getOutlinks(nodeId) {
+    const links = await Link.find({
+        from: nodeId
+    });
+    return links;
+}
+
+/**
+ * Returns all links which goes into the given node
+ * @param {Node} node 
+ * @returns {[Node]}
+ */
+async function getInlinks(nodeId) {
+    const links = await Link.find({
+        to: nodeId
+    });
+
+    return links;
+}
 
 /**
  * Breadth First Traversal
@@ -7,7 +32,7 @@ const Link = require('../models/link');
  * @param {Node} startNode 
  * @returns {[Node]}
  */
-function bfsAlgo(nodes, links, startNode) {
+async function bfsAlgo(nodes, startNode) {
     let queue = [startNode];
     let connectedNodes = [];
 
@@ -15,9 +40,9 @@ function bfsAlgo(nodes, links, startNode) {
         const current = queue.shift();
         if(current === null) continue;
         connectedNodes.push(current);
-        for (const element of current.outLinks) {
-            const link = links.find(link => link.id == element);
-            queue.push(nodes.find(node => node.id == link.to));
+        //const outlinks = await getOutlinks(current.id);
+        for (const element of getOutlinks(current.id)) {
+            queue.push(nodes.find(node => node.id == element.to));
         }
     }
 
@@ -27,13 +52,12 @@ function bfsAlgo(nodes, links, startNode) {
 /**
  * Returns with all the Nodes which does not have any connection to the main story line which starts from the given startNode. 
  * If the whole graph is connected, so no isolated nodes, then returns with an empty array.
- * @param {[Node]} nodes 
- * @param {[Link]} links 
+ * @param {[Node]} nodes
  * @param {Node} startNode 
  * @returns {[Node]}
  */
-function getIsolatedNodes(nodes, links, startNode) {
-    return nodes.filter(x => !bfsAlgo(nodes, links, startNode).includes(x));
+function getIsolatedNodes(nodes, startNode) {
+    return nodes.filter(x => !bfsAlgo(nodes, startNode).includes(x));
 }
 
 /**
@@ -43,7 +67,7 @@ function getIsolatedNodes(nodes, links, startNode) {
  * @param {Node} startNode
  * @returns {[Node]}
  */
-function getDependentBranch(nodes, links, startNode) {  // Looking for optimalization options
+async function getDependentBranch(nodes, links, startNode) {  // Looking for optimalization options
     let queue = [startNode];
     let dependentNodes = [];
     let usedNodeList = [];
@@ -57,8 +81,9 @@ function getDependentBranch(nodes, links, startNode) {  // Looking for optimaliz
             usedNodeList.push(current);
         }
 
-        if (current.outLinks.length > 0) {
-            for (const element of current.outLinks) {
+        const outlinks = getOutlinks(current.id);
+        if (outlinks.length > 0) {
+            for (const element of outlinks) {
                 if (!usedLinkList.includes(element)) {
                     const tmpNode = nodes.find(node => node.id == links.find(link => link.id == element).to);
     
@@ -78,7 +103,7 @@ function getDependentBranch(nodes, links, startNode) {  // Looking for optimaliz
     }
 
     for (const element of usedNodeList) {
-         if (element.inLinks.length == cntMap.get(element.id)) dependentNodes.push(element);
+         if (getInlinks(element.id).length == cntMap.get(element.id)) dependentNodes.push(element);
     }
     dependentNodes.push(startNode);
 
@@ -115,8 +140,8 @@ async function loadStory(story, storyNodes, storyLinks) {
             id: element.id,
             startingNode: element.startingNode,
             nodeStory: element.nodeStory,
-            inLinks: element.inLinks,
-            outLinks: element.outLinks
+            inLinks: getInlinks(element.id),
+            outLinks: getOutlinks(element.id)
         });
     }
 
@@ -165,6 +190,7 @@ async function mergeStories(storyObj) {
     return storyObj;
 }
 
+exports.getOutlinks = getOutlinks;
 exports.mergeStories = mergeStories;
 exports.loadStory = loadStory;
 exports.retrieveStory = retrieveStory;
