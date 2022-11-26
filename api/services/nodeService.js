@@ -6,7 +6,7 @@ const { Link } = require('../models/link');
  * @param {Node} node 
  * @returns {[Node]}
  */
-async function getOutlinks(nodeId) {
+async function getOutlinks(nodeId) {        // cache 10
     const links = await Link.find({
         from: nodeId
     });
@@ -18,7 +18,7 @@ async function getOutlinks(nodeId) {
  * @param {Node} node 
  * @returns {[Node]}
  */
-async function getInlinks(nodeId) {
+async function getInlinks(nodeId) {         // cache 11
     const links = await Link.find({
         to: nodeId
     });
@@ -40,8 +40,8 @@ async function bfsAlgo(nodes, startNode) {
         const current = queue.shift();
         if(current === null) continue;
         connectedNodes.push(current);
-        //const outlinks = await getOutlinks(current.id);
-        for (const element of getOutlinks(current.id)) {
+        // const outlinks = await getOutlinks(current.id);
+        for (const element of getOutlinks(current.id)) {                        // cache 12
             queue.push(nodes.find(node => node.id == element.to));
         }
     }
@@ -81,7 +81,7 @@ async function getDependentBranch(nodes, links, startNode) {  // Looking for opt
             usedNodeList.push(current);
         }
 
-        const outlinks = getOutlinks(current.id);
+        const outlinks = getOutlinks(current.id);               // cache 13
         if (outlinks.length > 0) {
             for (const element of outlinks) {
                 if (!usedLinkList.includes(element)) {
@@ -123,7 +123,7 @@ async function retrieveStory(cid) {
 
     const retrievedStoryJSON = JSON.parse(chunks.toString());
 
-    return retrievedStoryJSON;
+    return await retrievedStoryJSON;
 }
 
 /**
@@ -133,7 +133,7 @@ async function retrieveStory(cid) {
  * @param {Link} storyLinks 
  * @returns A full object with the additional parent stories if they exist.
  */
-async function loadStory(story, storyNodes, storyLinks) {
+async function loadStory(story, storyNodes, storyLinks) {                               // useless
     let nodesArr = [];
     for(const element of storyNodes) {
         nodesArr.push({
@@ -174,7 +174,7 @@ async function loadStory(story, storyNodes, storyLinks) {
 }
 
 // Needs to work on it
-async function mergeStories(storyObj) {
+async function mergeStories(storyObj) {                                                     // useless
     const parentStories = storyObj.parentStories;
     const links = storyObj.links;
 
