@@ -16,23 +16,23 @@ let activeStory = null;
 /**
  * To select and cache the current story.
  */
-router.get('/selectStory', async (req, res) => {
+router.get('/selectStory', async (req, res, next) => {
     activeStory = null;
-
+    
     const story = await Story.findOne({
         title: req.body.title
-    });
-
+    })
+    
     const storyNodes = await Node.find({
         story: story.id
-    });
-
+    })
+    
     const storyLinks = await Link.find({
         story: story.id
     });
 
     activeStory = await cacheStory(story, storyNodes, storyLinks);
-
+    
     res.send(`${req.body.title} has been selected!`);
 });
 
@@ -52,16 +52,9 @@ router.post('/createStory/:title', async (req, res) => {
         title: req.params.title
     })
 
-    story.save(function(err,result){
-        if (err){
-            winston.info(`Story: {${story.id}} caugth error during saving: ${err}`);
-            res.status(400).send(`Unable to save to database: ${err}`);
-        }
-        else {
-            winston.info(`Story: {${result.id}} saved to the database.`);
-            res.send("Story saved to database!");
-        }
-    });
+    await story.save();
+
+    res.send(`Story: ${story.id} saved successfully!`);
 });
 
 /**
@@ -77,17 +70,12 @@ router.post('/addNode', async (req, res) => {
         nodeStory: req.body.nodeStory
     });
 
-    await node.save(function (err) {
-        if (err) {
-            winston.info(`Node: {${this.id}} caugth error during saving: ${err}`);
-            res.status(400).send(`Unable to save to database: ${err}`);
-        } else {
-            // Update cache 'activeStory'
-            activeStory.nodes.push(this);
-        } 
-    });
+    await node.save();
 
-    res.send(node);
+    // Update cache 'activeStory'
+    activeStory.nodes.push(this);
+
+    res.send(`Node: ${node.id} saved successfully!`);
 });
 
 /**
@@ -106,17 +94,12 @@ router.post('/addLink', async (req, res) => {
         to: toNode
     });
 
-    await link.save(function (err) {
-        if (err) {
-            winston.info(`Link: {${this.id}} caugth error during saving: ${err}`);
-            res.status(400).send(`Unable to save to database: ${err}`);
-        } else {
-            // Update cache 'activeStory'
-            activeStory.links.push(this);
-        } 
-    });
+    await link.save();
 
-    res.send(link);
+    // Update cache 'activeStory'
+    activeStory.links.push(this);
+
+    res.send(`Link: ${link.id} saved successfully!`);
 });
 
 /**
@@ -135,18 +118,14 @@ router.post('/addLink', async (req, res) => {
         $push: {
             parentCIDs: story.cid
         }
-    })
-    .then(async (resultStory) => {
-        winston.info("Parent story added! ", resultStory);
+    });
 
-        // Update cache 'activeStory'
-        const tmpNodes = activeStory.nodes;
-        const tmpLinks = activeStory.links;
-        activeStory = await cacheStory(resultStory, tmpNodes, tmpLinks);
-    })
-    .catch(err => winston.info(`Error has been caught during the update: ${err}`));
+    // Update cache 'activeStory'
+    const tmpNodes = activeStory.nodes;
+    const tmpLinks = activeStory.links;
+    activeStory = await cacheStory(resultStory, tmpNodes, tmpLinks);
 
-    res.send(story.cid);
+    res.send(`Parent story added successfully!`);
 });
 
 /**
@@ -165,18 +144,14 @@ router.post('/addLink', async (req, res) => {
         $pull: {
             parentCIDs: story.cid
         }
-    })
-    .then(async (resultStory) => {
-        winston.info("Parent story deleted! ", resultStory);
+    });
 
-        // Update cache 'activeStory'
-        const tmpNodes = activeStory.nodes;
-        const tmpLinks = activeStory.links;
-        activeStory = await cacheStory(resultStory, tmpNodes, tmpLinks);
-    })
-    .catch(err => winston.info(`Error has been caught during the update: ${err}`));
-
-    res.send(story.cid);
+    // Update cache 'activeStory'
+    const tmpNodes = activeStory.nodes;
+    const tmpLinks = activeStory.links;
+    activeStory = await cacheStory(resultStory, tmpNodes, tmpLinks);
+    
+    res.send(`Parent story deleted successfully!`);
 });
 
 /**
@@ -189,14 +164,10 @@ router.put('/updateLinkToNode/:linkId', async (req, res) => {
         _id: req.params.linkId  
     }, {
         to: req.body.toNodeId
-    })
-    .then(() => {
-        winston.info('Update was succesful!');
+    });
 
-        // Update cache 'activeStory'
-        activeStory.links.find(link => link._id == req.params.linkId).to = req.body.toNodeId;
-    })
-    .catch(err => winston.info(`Error has been caught during updating the Link's 'to' property: ${err}`));
+    // Update cache 'activeStory'
+    activeStory.links.find(link => link._id == req.params.linkId).to = req.body.toNodeId;
 
     res.send("Update was succesful!");
 });
@@ -211,14 +182,10 @@ router.put('/updateLinkFromNode/:linkId', async (req, res) => {
         _id: req.params.linkId
     }, {
         from: req.body.fromNodeId
-    })
-    .then(() => {
-        winston.info('Update was succesful!');
+    });
 
-        // Update cache 'activeStory'
-        activeStory.links.find(link => link._id == req.params.linkId).from = req.body.fromNodeId;
-    })
-    .catch(err => winston.info(`Error has been caught during updating the Link's 'from' property: ${err}`));
+    // Update cache 'activeStory'
+    activeStory.links.find(link => link._id == req.params.linkId).from = req.body.fromNodeId;
 
     res.send("Update was succesful!");
 });
@@ -233,14 +200,10 @@ router.put('/updateNodeStory/:nodeId', async (req, res) => {
         _id: req.params.nodeId
     }, {
         nodeStory: req.body.text
-    })
-    .then(() => {
-        winston.info('NodeStory update was succesful!');
+    });
 
-        // Update cache 'activeStory'
-        activeStory.nodes.find(node => node._id == req.params.nodeId).nodeStory = req.body.text;
-    })
-    .catch(err => winston.info(`Error has been caught during updating the node's text: ${err}`));
+    // Update cache 'activeStory'
+    activeStory.nodes.find(node => node._id == req.params.nodeId).nodeStory = req.body.text;
 
     res.send("NodeStory update was succesful!");
 });
@@ -254,7 +217,7 @@ router.delete('/deleteStory/:storyId', async (req, res) => {
         { _id: req.params.storyId }
     );
 
-    res.send(deletedInstance);
+    res.send(`Story: ${deletedInstance.id} deleted successfully!`);
 });
 
 /**
@@ -266,13 +229,12 @@ router.delete('/deleteLink/:linkId', async (req, res) => {
 
     await Link.findOneAndDelete(
         { _id: req.params.linkId }
-    ).then(() => {
-        // Update cache 'activeStory'
-        activeStory.links.splice(activeStory.links.find(link => link._id == req.params.linkId), 1);
-    })
-    .catch(err => winston.info(`Error has been caught during deleting the Link ${this.id}: ${err}`));
+    );
 
-    res.send(deletedInstance);
+    // Update cache 'activeStory'
+    activeStory.links.splice(activeStory.links.find(link => link._id == req.params.linkId), 1);
+
+    res.send(`Link: ${deletedInstance.id} deleted successfully!`);
 });
 
 /**
@@ -284,18 +246,12 @@ router.delete('/deleteNode/:nodeId', async (req, res) => {
 
     await Node.findOneAndDelete(
         { _id: req.params.nodeId }
-    )
-    .then(deletedNode => {
-        winston.info(`Deletion was successful for: ${deletedNode}`);
-        res.send('Deletion was successful!');
+    );
 
-        // Update cache 'activeStory'
-        activeStory.nodes.splice(activeStory.nodes.find(node => node._id == req.params.nodeId), 1);
-    })
-    .catch(err => {
-        winston.info(`Deletion was unsuccessful for: ${err}`);
-        res.status(404).send('Deletion was unsuccessful!');
-    });
+    // Update cache 'activeStory'
+    activeStory.nodes.splice(activeStory.nodes.find(node => node._id == req.params.nodeId), 1);
+
+    res.send(`Node: ${deletedInstance.id} deleted successfully!`);
 });
 
 /**
@@ -323,6 +279,7 @@ router.delete('/deleteIsolatedNodes', async (req, res) => {
         const tmpNodes = activeStory.nodes;
         const tmpLinks = activeStory.links;
         activeStory = await cacheStory(resultStory, tmpNodes, tmpLinks);
+
         res.send(deletedInstances);
     } else {
         res.status(404).send('Starting point not defined!');
@@ -335,16 +292,17 @@ router.delete('/deleteIsolatedNodes', async (req, res) => {
 router.delete('/deleteDependencyTree/:startNode', async (req, res) => {
     if (activeStory === null) return res.status(404).send('Story has not been selected!');
 
-    const startNode = await Node.findById(req.params.startNode);        
+    const startNode = await Node.findById(req.params.startNode);
+
     const nodes = await Node.find({                                     
         story: activeStory.story._id
     });
+
     const links = await Link.find({                                   
         story: activeStory.story._id
     });
 
     const dependentNodes = getDependentBranch(nodes, links, startNode);
-    console.log(dependentNodes);  
 
     let deletedInstances = [];
     for (const element of dependentNodes) {

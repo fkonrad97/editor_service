@@ -39,7 +39,6 @@ router.post('/toIPFS/:storyId', async (req, res) => {
     const node = create();
 
     const { cid } = await node.add(finalizedStoryJSON);
-    console.info("IPFS id: ", cid);
 
     await Story.findByIdAndDelete(story.id);
 
@@ -59,7 +58,7 @@ router.post('/toIPFS/:storyId', async (req, res) => {
 router.get('/mint/:cid', async (req, res) => {
     var exec = require('child_process').exec;
 
-    exec(`npx hardhat mint --tokenuri https://ipfs.io/ipfs/${req.params.cid} --network goerli`,
+    exec(`npx hardhat mint --tokenuri https://ipfs.io/ipfs/${req.params.cid} --network goerli`,     // test the error handling
         function (error, stdout, stderr) {
             console.log(stdout);
             console.log(stderr);
@@ -76,7 +75,7 @@ router.get('/mint/:cid', async (req, res) => {
 router.get('/deployNFT', async (req, res) => {
     var exec = require('child_process').exec;
 
-    exec(`npx hardhat deploy --network goerli`,
+    exec(`npx hardhat deploy --network goerli`,     // test the error handling
         function (error, stdout, stderr) {
             console.log(stdout);
             console.log(stderr);
@@ -86,9 +85,5 @@ router.get('/deployNFT', async (req, res) => {
             res.send(stdout.toString());
         });
 });
-
-/*router.get('/loadParentStory/:storyId', async (req, res) => {
-    res.send(await retrieveStory(req.params.storyId));
-});*/
 
 module.exports = router; 

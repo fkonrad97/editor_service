@@ -34,3 +34,5 @@ NodeJS-Cache: https://www.npmjs.com/package/node-cache
 https://www.digitalocean.com/community/tutorials/how-to-implement-caching-in-node-js-using-redis
 
 Async: https://blog.risingstack.com/mastering-async-await-in-nodejs/
+
+Async error handling: simpler approach : npm - express-async-errors
