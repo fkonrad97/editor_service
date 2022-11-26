@@ -32,3 +32,5 @@ IPFS: https://docs.ipfs.tech/basics/js/js-ipfs/#spawn-a-node
 
 NodeJS-Cache: https://www.npmjs.com/package/node-cache 
 https://www.digitalocean.com/community/tutorials/how-to-implement-caching-in-node-js-using-redis
+
+Async: https://blog.risingstack.com/mastering-async-await-in-nodejs/

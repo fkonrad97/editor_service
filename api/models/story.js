@@ -13,8 +13,8 @@ const storySchema = new mongoose.Schema({
     },
     parentCIDs: [
         {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'ParentStories'
+            type: String,
+            ref: 'parentCIDs'
         }
     ]
 });
