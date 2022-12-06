@@ -15,6 +15,13 @@
     "winston-mongodb": "^5.1.0"
   },
   "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox": "^2.0.0"
+    "@nomicfoundation/hardhat-toolbox": "^2.0.0",
+    "jest": "^29.3.1",
+    "supertest": "^6.3.1"
+  },
+  "scripts": {
+    "test": "jest --watchAll --verbose --runInBand --coverage"
   }
 }
+
+

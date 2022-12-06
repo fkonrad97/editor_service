@@ -2,46 +2,56 @@ const { Node } = require('../models/node');
 const { Link } = require('../models/link');  
 
 /**
- * Returns all links which goes out from the given node
- * @param {Node} node 
- * @returns {[Node]}
+ * 
+ * @param {*} nodes 
+ * @param {*} links 
+ * @returns 
  */
-async function getOutlinks(nodeId) {        // cache 10
-    const links = await Link.find({
-        from: nodeId
-    });
-    return links;
+function getInlinks(node, links) {
+    const inLinks = [];
+
+    const tmpLinks = links.filter(link => link.to == node.id);
+
+    if (typeof tmpLinks !== 'undefined') {
+        inLinks.push(tmpLinks);
+    }
+
+    return inLinks.flat();
 }
 
 /**
- * Returns all links which goes into the given node
- * @param {Node} node 
- * @returns {[Node]}
+ * 
+ * @param {*} nodes 
+ * @param {*} links 
+ * @returns 
  */
-async function getInlinks(nodeId) {         // cache 11
-    const links = await Link.find({
-        to: nodeId
-    });
+function getOutlinks(node, links) {
+    const outLinks = [];
 
-    return links;
+    const tmpLinks = links.filter(link => link.from == node.id);
+
+    if (typeof tmpLinks !== 'undefined') {
+        outLinks.push(tmpLinks);
+    }
+
+    return outLinks.flat();
 }
 
 /**
  * Breadth First Traversal
  * @param {[Node]} nodes - all nodes
  * @param {Node} startNode 
- * @returns {[Node]}
+ * @returns 
  */
-async function bfsAlgo(nodes, startNode) {
+function bfsAlgo(nodes, startNode, links) {
     let queue = [startNode];
-    let connectedNodes = [];
+    let connectedNodes = new Set();
 
     while(queue.length > 0) {
         const current = queue.shift();
         if(current === null) continue;
-        connectedNodes.push(current);
-        // const outlinks = await getOutlinks(current.id);
-        for (const element of getOutlinks(current.id)) {                        // cache 12
+        connectedNodes.add(current);
+        for (const element of getOutlinks(current, links)) {
             queue.push(nodes.find(node => node.id == element.to));
         }
     }
@@ -56,8 +66,8 @@ async function bfsAlgo(nodes, startNode) {
  * @param {Node} startNode 
  * @returns {[Node]}
  */
-function getIsolatedNodes(nodes, startNode) {
-    return nodes.filter(x => !bfsAlgo(nodes, startNode).includes(x));
+function getIsolatedNodes(nodes, startNode, links) {
+    return nodes.filter(x => !bfsAlgo(nodes, startNode, links).has(x));
 }
 
 /**
@@ -67,7 +77,48 @@ function getIsolatedNodes(nodes, startNode) {
  * @param {Node} startNode
  * @returns {[Node]}
  */
-async function getDependentBranch(nodes, links, startNode) {  // Looking for optimalization options
+function getDependentBranch(nodes, links, startNode) {  // Looking for optimalization options
+    let queue = [startNode];
+    let dependentNodes = [];
+    let usedNodeList = new Set();
+    let cntMap = new Map();
+    let usedLinkList = new Set();
+
+    while(queue.length > 0) {
+        const current = queue.shift();
+        if(current === null) continue;
+        usedNodeList.add(current);
+        
+        const outLinks = getOutlinks(current, links);
+        if (outLinks.length > 0) {
+            for (const element of outLinks) {
+                if (!usedLinkList.has(element)) {
+                    const tmpNode = nodes.find(node => node.id == links.find(link => link.id == element.id).to);
+    
+                    if (cntMap.has(tmpNode.id)) {
+                        cntMap.set(tmpNode.id, cntMap.get(tmpNode.id) + 1);
+                    } else {
+                        cntMap.set(tmpNode.id, 1);
+                    }
+                    
+                    if (!usedNodeList.has(tmpNode)) {
+                        queue.push(tmpNode);
+                    }
+                    usedLinkList.add(element);
+                }
+            }
+        }
+    }
+
+    for (const element of usedNodeList) {
+         if (getInlinks(element, links).length == cntMap.get(element.id)) dependentNodes.push(element);
+    }
+    dependentNodes.push(startNode);
+
+    return dependentNodes;
+}
+
+/* async function getDependentBranch(nodes, links, startNode) {  // Looking for optimalization options
     let queue = [startNode];
     let dependentNodes = [];
     let usedNodeList = [];
@@ -80,12 +131,12 @@ async function getDependentBranch(nodes, links, startNode) {  // Looking for opt
         if (!usedNodeList.includes(current)) {
             usedNodeList.push(current);
         }
-
-        const outlinks = getOutlinks(current.id);               // cache 13
-        if (outlinks.length > 0) {
-            for (const element of outlinks) {
+        
+        const outLinks = getOutlinks(current, links);
+        if (outLinks.length > 0) {
+            for (const element of outLinks) {
                 if (!usedLinkList.includes(element)) {
-                    const tmpNode = nodes.find(node => node.id == links.find(link => link.id == element).to);
+                    const tmpNode = nodes.find(node => node.id == links.find(link => link.id == element.id).to);
     
                     if (cntMap.has(tmpNode.id)) {
                         cntMap.set(tmpNode.id, cntMap.get(tmpNode.id) + 1);
@@ -103,12 +154,12 @@ async function getDependentBranch(nodes, links, startNode) {  // Looking for opt
     }
 
     for (const element of usedNodeList) {
-         if (getInlinks(element.id).length == cntMap.get(element.id)) dependentNodes.push(element);
+         if (getInlinks(element, links).length == cntMap.get(element.id)) dependentNodes.push(element);
     }
     dependentNodes.push(startNode);
 
     return dependentNodes;
-}
+} */
 
 // 1. Maybe would be better to use fetch the tokenURI from the NFT rather than searching for CID in the database
 // 2. Move the DAO calls out of the function
@@ -139,9 +190,7 @@ async function loadStory(story, storyNodes, storyLinks) {                       
         nodesArr.push({
             id: element.id,
             startingNode: element.startingNode,
-            nodeStory: element.nodeStory,
-            inLinks: getInlinks(element.id),
-            outLinks: getOutlinks(element.id)
+            nodeStory: element.nodeStory
         });
     }
 
@@ -191,6 +240,7 @@ async function mergeStories(storyObj) {                                         
 }
 
 exports.getOutlinks = getOutlinks;
+exports.getInlinks = getInlinks;
 exports.mergeStories = mergeStories;
 exports.loadStory = loadStory;
 exports.retrieveStory = retrieveStory;
