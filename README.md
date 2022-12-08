@@ -36,3 +36,7 @@ https://www.digitalocean.com/community/tutorials/how-to-implement-caching-in-nod
 Async: https://blog.risingstack.com/mastering-async-await-in-nodejs/
 
 Async error handling: simpler approach : npm - express-async-errors
+
+--runInBand: (package.json -> Jest) Makes the test suites run serially, not parallel
+(https://stackoverflow.com/questions/54422849/jest-testing-multiple-test-file-port-3000-already-in-use)
+--coverage: Coverage generator

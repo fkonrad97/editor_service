@@ -41,20 +41,20 @@ router.get('/selectStory', async (req, res, next) => {
  */
 router.get('/', async (req, res) => {
     const stories = await Story.find();
-    res.send(stories);
+    res.status(200).send(stories);
 });
 
 /**
  * To create a new story.
  */
-router.post('/createStory/:title', async (req, res) => {
+router.post('/createStory', async (req, res) => {
     const story = new Story({
-        title: req.params.title
+        title: req.body.title
     })
 
     await story.save();
 
-    res.send(`Story: ${story.id} saved successfully!`);
+    res.status(200).send(story);
 });
 
 /**
@@ -75,7 +75,7 @@ router.post('/addNode', async (req, res) => {
     // Update cache 'activeStory'
     activeStory.nodes.push(this);
 
-    res.send(`Node: ${node.id} saved successfully!`);
+    res.status(200).send(node);
 });
 
 /**
@@ -99,7 +99,7 @@ router.post('/addLink', async (req, res) => {
     // Update cache 'activeStory'
     activeStory.links.push(this);
 
-    res.send(`Link: ${link.id} saved successfully!`);
+    res.status(200).send(link);
 });
 
 /**
@@ -129,6 +129,60 @@ router.post('/addLink', async (req, res) => {
 });
 
 /**
+ * To update the selected link's 'to' property.
+ */
+router.put('/updateLinkToNode', async (req, res) => {
+    if (activeStory === null) return res.status(404).send('Story has not been selected!');
+
+    const updateResult = await Link.updateOne({
+        _id: req.body.linkId
+    }, {
+        to: req.body.toNodeId
+    });
+
+    // Update cache 'activeStory'
+    activeStory.links.find(link => link._id == req.body.linkId).to = req.body.toNodeId;
+
+    res.status(200).send(updateResult);
+});
+
+/**
+ * To update the selected link's 'from' property.
+ */
+router.put('/updateLinkFromNode', async (req, res) => {
+    if (activeStory === null) return res.status(404).send('Story has not been selected!');
+
+    const updateResult = await Link.updateOne({
+        _id: req.body.linkId
+    }, {
+        from: req.body.fromNodeId
+    });
+
+    // Update cache 'activeStory'
+    activeStory.links.find(link => link._id == req.body.linkId).from = req.body.fromNodeId;
+
+    res.status(200).send(updateResult);
+});
+
+/**
+ * To update the selected node's text.
+ */
+router.put('/updateNodeStory', async (req, res) => {
+    if (activeStory === null) return res.status(404).send('Story has not been selected!');
+
+    const updateResult = await Node.updateOne({
+        _id: req.body.nodeId
+    }, {
+        nodeStory: req.body.text
+    });
+
+    // Update cache 'activeStory'
+    activeStory.nodes.find(node => node._id == req.body.nodeId).nodeStory = req.body.text;
+
+    res.status(200).send(updateResult);
+});
+
+/**
  * Delete parent stories to the current story.
  */
  router.put('/deleteParentStory/:storyId', async (req, res) => {
@@ -147,6 +201,7 @@ router.post('/addLink', async (req, res) => {
     });
 
     // Update cache 'activeStory'
+    // WRONG
     const tmpNodes = activeStory.nodes;
     const tmpLinks = activeStory.links;
     activeStory = await cacheStory(resultStory, tmpNodes, tmpLinks);
@@ -155,120 +210,63 @@ router.post('/addLink', async (req, res) => {
 });
 
 /**
- * To update the selected link's 'to' property.
- */
-router.put('/updateLinkToNode/:linkId', async (req, res) => {
-    if (activeStory === null) return res.status(404).send('Story has not been selected!');
-
-    await Link.updateOne({
-        _id: req.params.linkId  
-    }, {
-        to: req.body.toNodeId
-    });
-
-    // Update cache 'activeStory'
-    activeStory.links.find(link => link._id == req.params.linkId).to = req.body.toNodeId;
-
-    res.send("Update was succesful!");
-});
-
-/**
- * To update the selected link's 'from' property.
- */
-router.put('/updateLinkFromNode/:linkId', async (req, res) => {
-    if (activeStory === null) return res.status(404).send('Story has not been selected!');
-
-    await Link.updateOne({
-        _id: req.params.linkId
-    }, {
-        from: req.body.fromNodeId
-    });
-
-    // Update cache 'activeStory'
-    activeStory.links.find(link => link._id == req.params.linkId).from = req.body.fromNodeId;
-
-    res.send("Update was succesful!");
-});
-
-/**
- * To update the selected node's text.
- */
-router.put('/updateNodeStory/:nodeId', async (req, res) => {
-    if (activeStory === null) return res.status(404).send('Story has not been selected!');
-
-    await Node.updateOne({
-        _id: req.params.nodeId
-    }, {
-        nodeStory: req.body.text
-    });
-
-    // Update cache 'activeStory'
-    activeStory.nodes.find(node => node._id == req.params.nodeId).nodeStory = req.body.text;
-
-    res.send("NodeStory update was succesful!");
-});
-
-/**
  * To delete selected Story.
  * 'Story.findOneAndDelete' uses post middlewares.
  */
-router.delete('/deleteStory/:storyId', async (req, res) => {
+router.delete('/deleteStory', async (req, res) => {
     const deletedInstance = await Story.findOneAndDelete(
-        { _id: req.params.storyId }
+        { _id: req.body.storyId }
     );
 
-    res.send(`Story: ${deletedInstance.id} deleted successfully!`);
+    res.status(200).send(deletedInstance);
 });
 
 /**
  * To delete selected link.
  * 'Link.findOneAndDelete' uses post middlewares.
  */
-router.delete('/deleteLink/:linkId', async (req, res) => {
+router.delete('/deleteLink', async (req, res) => {
     if (activeStory === null) return res.status(404).send('Story has not been selected!');
 
-    await Link.findOneAndDelete(
-        { _id: req.params.linkId }
+    const deletedInstance = await Link.findOneAndDelete(
+        { _id: req.body.linkId }
     );
 
     // Update cache 'activeStory'
-    activeStory.links.splice(activeStory.links.find(link => link._id == req.params.linkId), 1);
+    activeStory.links.splice(activeStory.links.find(link => link._id == req.body.linkId), 1);
 
-    res.send(`Link: ${deletedInstance.id} deleted successfully!`);
+    res.status(200).send(deletedInstance);
 });
 
 /**
  * To delete selected node.
  * 'Node.findOneAndDelete' uses post middlewares.
  */
-router.delete('/deleteNode/:nodeId', async (req, res) => {
+router.delete('/deleteNode', async (req, res) => {
     if (activeStory === null) return res.status(404).send('Story has not been selected!');   
 
-    await Node.findOneAndDelete(
-        { _id: req.params.nodeId }
+    const deletedInstance = await Node.findOneAndDelete(
+        { _id: req.body.nodeId }
     );
 
     // Update cache 'activeStory'
-    activeStory.nodes.splice(activeStory.nodes.find(node => node._id == req.params.nodeId), 1);
+    // WRONG - links should be updated too
+    activeStory.nodes.splice(activeStory.nodes.find(node => node._id == req.body.nodeId), 1);
 
-    res.send(`Node: ${deletedInstance.id} deleted successfully!`);
+    res.status(200).send(deletedInstance);
 });
 
 /**
  * To delete all nodes which are isolated from the main storyline.
  */
 router.delete('/deleteIsolatedNodes', async (req, res) => {
-    if (activeStory === null) return res.status(404).send('Story has not been selected!');     
+    if (activeStory === null) return res.status(404).send('Story has not been selected!'); 
 
-    const nodes = await Node.find({        
-        story: activeStory.story._id 
-    });
-
-    const startNode = nodes.find(node => node.startingNode == true);
+    const startNode = activeStory.nodes.find(node => node.startingNode == true);
 
     if (typeof startNode !== 'undefined') {
         let deletedInstances = [];
-        for (const element of getIsolatedNodes(nodes, startNode)) {
+        for (const element of getIsolatedNodes(activeStory.nodes, startNode, activeStory.links)) {
             const deletedNode = await Node.findOneAndDelete(
                 { _id: element._id }
             );
@@ -276,33 +274,27 @@ router.delete('/deleteIsolatedNodes', async (req, res) => {
         }
 
         // Update cache 'activeStory'
-        const tmpNodes = activeStory.nodes;
-        const tmpLinks = activeStory.links;
-        activeStory = await cacheStory(resultStory, tmpNodes, tmpLinks);
+        // Create a helper remove function for the cache
+        // WRONG - links should be updated too
+        deletedInstances.forEach(deletedInstance => {
+            activeStory.nodes.splice(activeStory.nodes.indexOf(activeStory.nodes.find(node => node._id == deletedInstance._id)), 1);
+        })
 
-        res.send(deletedInstances);
+        res.status(200).send(deletedInstances);
     } else {
-        res.status(404).send('Starting point not defined!');
+        res.status(404);
     }
 });
 
 /**
  * To delete all nodes and links which are depend on the 'startNode' argument.
  */
-router.delete('/deleteDependencyTree/:startNode', async (req, res) => {
+router.delete('/deleteDependencyTree', async (req, res) => {
     if (activeStory === null) return res.status(404).send('Story has not been selected!');
 
-    const startNode = await Node.findById(req.params.startNode);
+    const startNode = activeStory.nodes.find(node => node._id == req.body.startNodeId);
 
-    const nodes = await Node.find({                                     
-        story: activeStory.story._id
-    });
-
-    const links = await Link.find({                                   
-        story: activeStory.story._id
-    });
-
-    const dependentNodes = getDependentBranch(nodes, links, startNode);
+    const dependentNodes = getDependentBranch(activeStory.nodes, activeStory.links, startNode);
 
     let deletedInstances = [];
     for (const element of dependentNodes) {
@@ -312,11 +304,12 @@ router.delete('/deleteDependencyTree/:startNode', async (req, res) => {
     }
 
     // Update cache 'activeStory'
-    const tmpNodes = activeStory.nodes;
-    const tmpLinks = activeStory.links;
-    activeStory = await cacheStory(resultStory, tmpNodes, tmpLinks);
+    // Create a helper remove function for the cache
+    deletedInstances.forEach(deletedInstance => {
+        activeStory.nodes.splice(activeStory.nodes.indexOf(activeStory.nodes.find(node => node._id == deletedInstance._id)), 1);
+    })
 
-    res.send(deletedInstances);
+    res.status(200).send(deletedInstances);
 });
 
 module.exports = router; 
