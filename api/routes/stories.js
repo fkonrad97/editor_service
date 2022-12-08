@@ -8,24 +8,31 @@ const { Story } = require('../models/story');
 const { DeployedStory } = require('../models/deployedStory');
 
 const { getIsolatedNodes, getDependentBranch } = require('../services/nodeService');
-const { cacheStory } = require('../cache/cacheStoryService');
+const { cacheStory, CachedStory } = require('../cache/cacheStoryService');
 
 /** Cached object (temporary solution) */
 let activeStory = null;
 
+router.get('/test/:storyId', async (req, res) => {
+    const cache = new CachedStory();
+    await cache.construct(req.params.storyId);
+
+    res.send(cache.nodes);
+});
+
 /**
  * To select and cache the current story.
  */
-router.get('/selectStory', async (req, res, next) => {
+router.get('/selectStory', async (req, res) => {
     activeStory = null;
     
     const story = await Story.findOne({
         title: req.body.title
-    })
+    });
     
     const storyNodes = await Node.find({
         story: story.id
-    })
+    });
     
     const storyLinks = await Link.find({
         story: story.id
