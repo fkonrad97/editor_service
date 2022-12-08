@@ -8,7 +8,7 @@ const { Story } = require('../models/story');
 const { DeployedStory } = require('../models/deployedStory');
 
 const { getIsolatedNodes, getDependentBranch } = require('../services/nodeService');
-const { cacheStory, CachedStory } = require('../cache/cacheStoryService');
+const { cacheStory, CachedStory } = require('../caching/cacheStoryService');
 
 /** Cached object (temporary solution) */
 let activeStory = null;
