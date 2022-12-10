@@ -5,23 +5,6 @@ const { Story } = require('../models/story');
 
 /**
  * 
- * @param {*} _story 
- * @param {*} _nodes 
- * @param {*} _links 
- * @returns 
- */
-async function cacheStory(_story, _nodes, _links) {
-    const parentStories = await fetchParentStory(_story);
-    const mergedStory = mergeStories(_nodes, _links, parentStories);
-    return {
-        story: _story,
-        nodes: mergedStory.nodes,
-        links: mergedStory.links
-    };
-}
-
-/**
- * 
  * @param {*} story 
  * @returns 
  */
@@ -42,9 +25,11 @@ async function fetchParentStory(story) {
  * @param {*} parentStories 
  * @returns 
  */
-function mergeStories(nodes, links, parentStories) {
+async function mergeStories(story, nodes, links) {
     const mergeNodes = [];
     const mergeLinks = [];
+
+    const parentStories = await fetchParentStory(story);
 
     if (parentStories !== []) {
         for (const parentStory of parentStories) {
@@ -66,94 +51,104 @@ function mergeStories(nodes, links, parentStories) {
 
 
 
-function CachedStory () {
-    let cachedStory = Object.create(CachedStory.prototype);
+class CachedStory {
+    constructor(_story = 'undefined', _nodes = [], _links = []) {
+        this.story = _story;
+        this.nodes = _nodes;
+        this.links = _links;
+    }
 
-    Object.defineProperties(this, {
-        "story": {
-          get: function() {
-                return this.story;
-          },
-          set: function(_story) {
-                this.story = _story;
-          }
-        },
-        "nodes": {
-          get: function() {
-                return this.nodes;
-          },
-          set: function(_nodes) {
-                this.nodes = _nodes;
-          }
-        },
-        "links": {
-           get: function() {
-                return this.links;
-           },
-           set: function(_links) {
-                this.links = _links;
-           }
-        }
-    });
+    async setStory(_storyId) {
+        const tmpStory = await Story.findOne({
+            id: _storyId
+        });
 
-    return cachedStory;
+        const tmpNodes = await Node.find({
+            story: tmpStory.id
+        });
+
+        const tmpLinks = await Link.find({
+            story: tmpStory.id
+        });
+
+        const mergedStory = await mergeStories(tmpStory, tmpNodes, tmpLinks);
+
+        this.story = tmpStory;
+        this.nodes = mergedStory.nodes;
+        this.links = mergedStory.links;
+    }
+
+    // Refresh the already selected Story
+    // Use it when the whole, already loaded cached story needs to be updated.
+    async refresh() {
+        const storyId = this.story.id;
+
+        this.clear();
+
+        const tmpStory = await Story.findOne({
+            id: _storyId
+        });
+
+        const tmpNodes = await Node.find({
+            story: tmpStory.id
+        });
+
+        const tmpLinks = await Link.find({
+            story: tmpStory.id
+        });
+
+        const mergedStory = mergeStories(tmpStory, tmpNodes, tmpLinks);
+
+        this.story = tmpStory;
+        this.nodes = mergedStory.nodes;
+        this.links = mergedStory.links;
+    }
+
+    addNode(node) {
+        this.nodes.push(node);
+    }
+
+    addLink(link) {
+        this.links.push(link);
+    }
+
+    removeLink(removableLinkId) {
+        this.links.splice(
+            this.links.find(link => link._id == removableLinkId),
+            1
+        );
+    }
+
+    removeNode(removableNodeId) {
+        this.nodes.splice(
+            this.nodes.find(node => node._id == removableNodeId),
+            1
+        );
+
+        // Delete related links from cache
+        this.links.splice(
+            this.links.find(link => link.to == removableNodeId),
+            1
+        );
+
+        this.links.splice(
+            this.links.find(link => link.from == removableNodeId),
+            1
+        );
+    }
+
+    isEmpty() {
+        if (typeof this.story === 'undefined')
+            return true;
+        return false;
+    }
+
+    clear() {
+        this.story = 'undefined';
+        this.nodes = [];
+        this.links = [];
+    }
 }
 
-CachedStory.prototype.construct = async function(_storyId) {
-    const tmpStory = await Story.findOne({
-        id: _storyId
-    });
-    
-    const tmpNodes = await Node.find({
-        story: tmpStory.id
-    });
-    
-    const tmpLinks = await Link.find({
-        story: tmpStory.id
-    });
-
-    const parentStories = await fetchParentStory(tmpStory);
-    const mergedStory = mergeStories(tmpNodes, tmpLinks, parentStories);
-
-    this.story = mergedStory.story;
-    this.nodes = mergedStory.nodes;
-    this.links = mergedStory.links;
-}
-
-CachedStory.prototype.addNode = function(node) {
-    this.nodes.push(node);
-}
-
-CachedStory.prototype.addLink = function(link) {
-    this.links.push(link);
-}
-
-CachedStory.prototype.removeLink = function(removableLinkId) {
-    this.links.splice(
-        this.links.find(link => link._id == removableLinkId),
-        1
-    );
-}
-
-CachedStory.prototype.removeNode = function(removableNodeId) {
-    this.nodes.splice(
-        this.nodes.find(node => node._id == removableNodeId),
-        1
-    );
-
-    // Delete related links from cache
-    this.links.splice(
-        this.links.find(link => link.to == removableNodeId),
-        1
-    );
-
-    this.links.splice(
-        this.links.find(link => link.from == removableNodeId),
-        1
-    );
-}
-
-exports.CachedStory = CachedStory;
-exports.fetchParentStory = fetchParentStory;
-exports.cacheStory = cacheStory;
-
+const StoryCache = new CachedStory();
+module.exports = StoryCache;
