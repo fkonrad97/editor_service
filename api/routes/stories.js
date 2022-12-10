@@ -24,7 +24,7 @@ router.get('/selectStory', async (req, res) => {
  * Get all Story documents from DB.
  */
 router.get('/', async (req, res) => {
-    const stories = await Story.find();
+    const stories = await Story.find({});
     res.status(200).send(stories);
 });
 
@@ -50,7 +50,7 @@ router.post('/addNode', async (req, res) => {
 
     const node = new Node({
         startingNode: req.body.startingNode,
-        story: StoryCache.story._id ,
+        story: StoryCache.story._id,
         nodeStory: req.body.nodeStory
     });
 
@@ -89,14 +89,14 @@ router.post('/addLink', async (req, res) => {
 /**
  * Add parent stories to the current story.
  */
- router.put('/addParentStory/:storyId', async (req, res) => {
+ router.put('/addParentStory', async (req, res) => {
     if (StoryCache.isEmpty()) return res.status(404).send('Story has not been selected!');
 
     const story = await DeployedStory.findOne({
-        _id: req.params.storyId
+        _id: req.body.storyId
     });
 
-    await Story.findOneAndUpdate({
+    const updateResult = await Story.findOneAndUpdate({
         _id: StoryCache.story._id
     }, {
         $push: {
@@ -107,7 +107,7 @@ router.post('/addLink', async (req, res) => {
     // Update cache 'StoryCache'
     StoryCache.refresh();
 
-    res.send(`Parent story added successfully!`);
+    res.status(200).send(updateResult);
 });
 
 /**
@@ -167,11 +167,11 @@ router.put('/updateNodeStory', async (req, res) => {
 /**
  * Delete parent stories to the current story.
  */
- router.put('/deleteParentStory/:storyId', async (req, res) => {
+ router.put('/deleteParentStory', async (req, res) => {
     if (StoryCache.isEmpty()) return res.status(404).send('Story has not been selected!');
 
     const story = await DeployedStory.findOne({
-        _id: req.params.storyId
+        _id: req.body.storyId
     });
 
     const deletion = await Story.updateOne({
@@ -245,14 +245,13 @@ router.delete('/deleteIsolatedNodes', async (req, res) => {
     if (typeof startNode !== 'undefined') {
         let deletedInstances = [];
         for (const element of getIsolatedNodes(StoryCache.nodes, startNode, StoryCache.links)) {
-            const deletedNode = await Node.findOneAndDelete(
+            const deletedNode = await Node.findOneAndDelete(    // rewrite the logic and use deleteMany instead would be rather practical
                 { _id: element._id }
             );
             deletedInstances.push(deletedNode);
         }
 
         // Update cache 'StoryCache'
-        // Create a helper remove function for the cache
         deletedInstances.forEach(deletedInstance => {
             StoryCache.removeNode(deletedInstance._id);
         });
@@ -275,13 +274,12 @@ router.delete('/deleteDependencyTree', async (req, res) => {
 
     let deletedInstances = [];
     for (const element of dependentNodes) {
-        deletedInstances.push(await Node.findOneAndDelete(
+        deletedInstances.push(await Node.findOneAndDelete(      // .deleteMany would be more paractical
             { _id: element.id }
         ));
     }
 
     // Update cache 'StoryCache'
-    // Create a helper remove function for the cache
     deletedInstances.forEach(deletedInstance => {
         StoryCache.removeNode(deletedInstance._id);
     })
