@@ -243,18 +243,15 @@ router.delete('/deleteIsolatedNodes', async (req, res) => {
     const startNode = StoryCache.nodes.find(node => node.startingNode == true);
 
     if (typeof startNode !== 'undefined') {
-        let deletedInstances = [];
-        for (const element of getIsolatedNodes(StoryCache.nodes, startNode, StoryCache.links)) {
-            const deletedNode = await Node.findOneAndDelete(    // rewrite the logic and use deleteMany instead would be rather practical
-                { _id: element._id }
-            );
-            deletedInstances.push(deletedNode);
-        }
+        const isolatedNodesIds = getIsolatedNodes(StoryCache.nodes, startNode, StoryCache.links).map(element => element.id);
 
-        // Update cache 'StoryCache'
-        deletedInstances.forEach(deletedInstance => {
-            StoryCache.removeNode(deletedInstance._id);
+        const deletedInstances = await Node.deleteMany({
+            _id: {
+                $in: isolatedNodesIds
+            }
         });
+
+        isolatedNodesIds.forEach(deletedNodeId => StoryCache.removeNode(deletedNodeId));
 
         res.status(200).send(deletedInstances);
     } else {
@@ -264,6 +261,7 @@ router.delete('/deleteIsolatedNodes', async (req, res) => {
 
 /**
  * To delete all nodes and links which are depend on the 'startNode' argument.
+ * 'findOneAndDelete' is justified, because of the post-hook which deletes the related links
  */
 router.delete('/deleteDependencyTree', async (req, res) => {
     if (StoryCache === null) return res.status(404).send('Story has not been selected!');
@@ -274,15 +272,13 @@ router.delete('/deleteDependencyTree', async (req, res) => {
 
     let deletedInstances = [];
     for (const element of dependentNodes) {
-        deletedInstances.push(await Node.findOneAndDelete(      // .deleteMany would be more paractical
+        deletedInstances.push(await Node.findOneAndDelete( 
             { _id: element.id }
         ));
     }
 
     // Update cache 'StoryCache'
-    deletedInstances.forEach(deletedInstance => {
-        StoryCache.removeNode(deletedInstance._id);
-    })
+    deletedInstances.map(instance => instance.id).forEach(id => StoryCache.removeNode(id));
 
     res.status(200).send(deletedInstances);
 });
