@@ -267,9 +267,8 @@ describe('/api/stories/', () => {
 
             const res = await request(server).delete('/api/stories/deleteIsolatedNodes');
 
-            expect(res.body.length).toBe(1);
+            expect(res.body.deletedCount).toBe(1);
             expect(res.status).toBe(200);
-            expect(res.body[0].nodeStory).toBe('TestNode7');
         });
 
         it('should delete dependent nodes', async () => {
