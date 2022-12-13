@@ -168,13 +168,13 @@ async function retrieveStory(cid) {
     const node = create();
 
     const chunks = [];
-    for await (const chunk of node.cat(cid)) {
+    for (const chunk of node.cat(cid)) {
         chunks.push(chunk);
     }
 
     const retrievedStoryJSON = JSON.parse(chunks.toString());
 
-    return await retrievedStoryJSON;
+    return retrievedStoryJSON;
 }
 
 /**
