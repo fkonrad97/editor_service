@@ -81,7 +81,7 @@ class CachedStory {
     // Refresh the already selected Story
     // Use it when the whole, already loaded cached story needs to be updated.
     async refresh() {
-        const storyId = this.story.id;
+        const _storyId = this.story.id;
 
         this.clear();
 
@@ -138,7 +138,7 @@ class CachedStory {
     }
 
     isEmpty() {
-        if (typeof this.story === 'undefined')
+        if (this.story === 'undefined')
             return true;
         return false;
     }
