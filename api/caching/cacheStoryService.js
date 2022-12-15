@@ -1,64 +1,14 @@
-const { retrieveStory } = require('../services/nodeService');
 const { Node } = require('../models/node');
 const { Link } = require('../models/link');  
-const { Story } = require('../models/story'); 
+const { Story } = require('../models/story');
+const { mergeStories } = require('../services/storyService');
 
-/**
- * 
- * @param {*} story 
- * @returns 
- */
-async function fetchParentStory(story) {
-    parentStories = [];
-    if (story.parentCIDs !== null) {
-        for(const element of story.parentCIDs) {
-            parentStories.push(await retrieveStory(element));
-        }
-    }
-    return parentStories;
-}
+class CacheStoryService {
+    static story = 'undefined';
+    static nodes = [];
+    static links = [];
 
-/**
- * 
- * @param {*} nodes 
- * @param {*} links 
- * @param {*} parentStories 
- * @returns 
- */
-async function mergeStories(story, nodes, links) {
-    const mergeNodes = [];
-    const mergeLinks = [];
-
-    const parentStories = await fetchParentStory(story);
-
-    if (parentStories !== []) {
-        for (const parentStory of parentStories) {
-            mergeNodes.push(parentStory.nodes);
-            mergeLinks.push(parentStory.links);
-        }
-        mergeNodes.push(nodes);
-        mergeLinks.push(links);
-
-        const mergedStory = {
-            nodes: mergeNodes.flat(),
-            links: mergeLinks.flat()
-        }
-        return mergedStory;
-    } else {
-        return { nodes, links }
-    }
-}
-
-
-
-class CachedStory {
-    constructor(_story = 'undefined', _nodes = [], _links = []) {
-        this.story = _story;
-        this.nodes = _nodes;
-        this.links = _links;
-    }
-
-    async setStory(_storyId) {
+    static async cache(_storyId) {
         const tmpStory = await Story.findOne({
             id: _storyId
         });
@@ -80,7 +30,7 @@ class CachedStory {
 
     // Refresh the already selected Story
     // Use it when the whole, already loaded cached story needs to be updated.
-    async refresh() {
+    static async refresh() {
         const _storyId = this.story.id;
 
         this.clear();
@@ -104,22 +54,22 @@ class CachedStory {
         this.links = mergedStory.links;
     }
 
-    addNode(node) {
+    static addNode(node) {
         this.nodes.push(node);
     }
 
-    addLink(link) {
+    static addLink(link) {
         this.links.push(link);
     }
 
-    removeLink(removableLinkId) {
+    static removeLink(removableLinkId) {
         this.links.splice(
             this.links.find(link => link._id == removableLinkId),
             1
         );
     }
 
-    removeNode(removableNodeId) {
+    static removeNode(removableNodeId) {
         this.nodes.splice(
             this.nodes.find(node => node._id == removableNodeId),
             1
@@ -137,18 +87,19 @@ class CachedStory {
         );
     }
 
-    isEmpty() {
+    static isEmpty() {
         if (this.story === 'undefined')
             return true;
         return false;
     }
 
-    clear() {
+    static clear() {
         this.story = 'undefined';
         this.nodes = [];
         this.links = [];
     }
 }
 
-const StoryCache = new CachedStory();
-module.exports = StoryCache;
+//const StoryCache = new CachedStory();
+module.exports = CacheStoryService;
+// module.exports = StoryCache;

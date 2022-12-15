@@ -118,49 +118,6 @@ function getDependentBranch(nodes, links, startNode) {  // Looking for optimaliz
     return dependentNodes;
 }
 
-/* async function getDependentBranch(nodes, links, startNode) {  // Looking for optimalization options
-    let queue = [startNode];
-    let dependentNodes = [];
-    let usedNodeList = [];
-    let cntMap = new Map();
-    let usedLinkList = [];
-
-    while(queue.length > 0) {
-        const current = queue.shift();
-        if(current === null) continue;
-        if (!usedNodeList.includes(current)) {
-            usedNodeList.push(current);
-        }
-        
-        const outLinks = getOutlinks(current, links);
-        if (outLinks.length > 0) {
-            for (const element of outLinks) {
-                if (!usedLinkList.includes(element)) {
-                    const tmpNode = nodes.find(node => node.id == links.find(link => link.id == element.id).to);
-    
-                    if (cntMap.has(tmpNode.id)) {
-                        cntMap.set(tmpNode.id, cntMap.get(tmpNode.id) + 1);
-                    } else {
-                        cntMap.set(tmpNode.id, 1);
-                    }
-                    
-                    if (!usedNodeList.includes(tmpNode)) {
-                        queue.push(tmpNode);
-                    }
-                    usedLinkList.push(element);
-                }
-            }
-        }
-    }
-
-    for (const element of usedNodeList) {
-         if (getInlinks(element, links).length == cntMap.get(element.id)) dependentNodes.push(element);
-    }
-    dependentNodes.push(startNode);
-
-    return dependentNodes;
-} */
-
 // 1. Maybe would be better to use fetch the tokenURI from the NFT rather than searching for CID in the database
 // 2. Move the DAO calls out of the function
 async function retrieveStory(cid) {
