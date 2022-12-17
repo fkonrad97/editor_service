@@ -100,6 +100,4 @@ class CacheStoryService {
     }
 }
 
-//const StoryCache = new CachedStory();
 module.exports = CacheStoryService;
-// module.exports = StoryCache;
