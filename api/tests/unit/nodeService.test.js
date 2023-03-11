@@ -1,4 +1,4 @@
-const { getIsolatedNodes, getDependentBranch, getInlinks, getOutlinks } = require('../../services/nodeService');
+const { getUnreachableNodes, getDependentBranch, getInlinks, getOutlinks } = require('../../services/nodeService');
 const { clearDB, initGraph } = require('../testService');
 
 let server;
@@ -30,7 +30,7 @@ describe('nodeService test', () => {
 
         const startingNode = testGraph.nodes.find(node => node.startingNode == true);
 
-        expect(getIsolatedNodes(testGraph.nodes, startingNode, testGraph.links).length).toBe(1);
+        expect(getUnreachableNodes(testGraph.nodes, startingNode, testGraph.links).length).toBe(1);
     });
 
     it('should return with all dependent nodes', async () => {
