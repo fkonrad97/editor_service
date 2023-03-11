@@ -9,20 +9,10 @@ class CacheStoryService {
     static links = [];
 
     static async cache(_storyId) {
-        const tmpStory = await Story.findOne({
-            id: _storyId
-        });
-
-        const tmpNodes = await Node.find({
-            story: tmpStory.id
-        });
-
-        const tmpLinks = await Link.find({
-            story: tmpStory.id
-        });
-
+        const tmpStory = await Story.findOne({ id: _storyId });
+        const tmpNodes = await Node.find({ story: tmpStory.id });
+        const tmpLinks = await Link.find({ story: tmpStory.id });
         const mergedStory = await mergeStories(tmpStory, tmpNodes, tmpLinks);
-
         this.story = tmpStory;
         this.nodes = mergedStory.nodes;
         this.links = mergedStory.links;

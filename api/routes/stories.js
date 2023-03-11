@@ -6,7 +6,7 @@ const { Link } = require('../models/link');
 const { Story } = require('../models/story'); 
 const { DeployedStory } = require('../models/deployedStory');
 
-const { getIsolatedNodes, getDependentBranch } = require('../services/nodeService');
+const { getUnreachableNodes, getDependentBranch } = require('../services/nodeService');
 const CacheStoryService = require('../caching/cacheStoryService');
 
 /**
@@ -243,7 +243,7 @@ router.delete('/deleteIsolatedNodes', async (req, res) => {
     const startNode = CacheStoryService.nodes.find(node => node.startingNode == true);
 
     if (typeof startNode !== 'undefined') {
-        const isolatedNodesIds = getIsolatedNodes(CacheStoryService.nodes, startNode, CacheStoryService.links).map(element => element.id);
+        const isolatedNodesIds = getUnreachableNodes(CacheStoryService.nodes, startNode, CacheStoryService.links).map(element => element.id);
 
         const deletedInstances = await Node.deleteMany({
             _id: {

@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const winston = require('winston');
 
 /**
  * Link schema:
@@ -18,12 +17,12 @@ const linkSchema = new mongoose.Schema({
         ref: 'Story',
         required: true
     },
-    from: {
+    from: { // change the name to source
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Node',
         required: true
     },
-    to: {
+    to: {  // change the name to destination
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Node',
         required: true
