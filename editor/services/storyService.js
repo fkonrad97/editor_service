@@ -7,7 +7,7 @@ const { retrieveStory } = require('../services/nodeService');
 */
 async function fetchParentStory(story) {
     const parentStories = [];
-    if (story.parentCIDs !== null) {
+    if (story.parentCIDs.length != 0) {
         for (const element of story.parentCIDs) {
             parentStories.push(await retrieveStory(element));
         }
@@ -28,7 +28,7 @@ async function mergeStories(story, nodes, links) {
 
     const parentStories = await fetchParentStory(story);
 
-    if (parentStories !== []) {
+    if (parentStories.length != 0) {
         for (const parentStory of parentStories) {
             mergeNodes.push(parentStory.nodes);
             mergeLinks.push(parentStory.links);
