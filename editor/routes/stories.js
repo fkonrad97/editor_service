@@ -10,17 +10,6 @@ const { getUnreachableNodes, getDependentBranch } = require('../services/nodeSer
 const CacheStoryService = require('../caching/cacheStoryService');
 
 /**
- * 
- */
-router.get("/sendStory", (req, res) => {
-    if (!CacheStoryService.isEmpty()) CacheStoryService.clear();
-
-    sendData(CacheStoryService.toString);  // pass the data to the function we defined
-    console.log("A message is sent to queue")
-    res.send("Message Sent"); //response to the API request
-})
-
-/**
  * To select and cache the current story.
  */
 router.get('/selectStory', async (req, res) => {
@@ -176,6 +165,7 @@ router.put('/updateNodeStory', async (req, res) => {
 });
 
 /**
+ * ??????
  * Delete parent stories to the current story.
  */
  router.put('/deleteParentStory', async (req, res) => {
