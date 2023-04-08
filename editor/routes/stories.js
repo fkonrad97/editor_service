@@ -9,21 +9,6 @@ const { DeployedStory } = require('../models/deployedStory');
 const { getUnreachableNodes, getDependentBranch } = require('../services/nodeService');
 const CacheStoryService = require('../caching/cacheStoryService');
 
-const mqChannel = require('../startup/msgbroker')
-const mqConnection = require('../startup/msgbroker')
-
-/**
- * 
- */
-async function sendData(data) {
-    // send data to queue
-    await mqChannel.sendToQueue("test-queue", Buffer.from(JSON.stringify(data)));
-        
-    // close the channel and connection
-    await mqChannel.close();
-    await mqConnection.close(); 
-}
-
 /**
  * 
  */
