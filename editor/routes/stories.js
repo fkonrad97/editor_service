@@ -165,6 +165,7 @@ router.put('/updateNodeStory', async (req, res) => {
 });
 
 /**
+ * ??????
  * Delete parent stories to the current story.
  */
  router.put('/deleteParentStory', async (req, res) => {
