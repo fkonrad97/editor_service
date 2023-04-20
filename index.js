@@ -7,7 +7,6 @@ const app = express();
 require('./editor/startup/logging')();
 require('./editor/startup/routes')(app);
 require('./editor/startup/database')();
-require('./editor/startup/msgbroker')
 
 const port = process.env.PORT || 3000;
 const server = app.listen(port, () => winston.info(`Listening on port ${port}...`));
