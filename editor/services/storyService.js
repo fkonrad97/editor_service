@@ -25,24 +25,28 @@ async function fetchParentStory(story) {
 async function mergeStories(story, nodes, links) {
     const mergeNodes = [];
     const mergeLinks = [];
+    const mergeStories = [];
 
     const parentStories = await fetchParentStory(story);
 
     if (parentStories.length != 0) {
         for (const parentStory of parentStories) {
+            mergeStories.push(parentStory.id);  // Is it working???
             mergeNodes.push(parentStory.nodes);
             mergeLinks.push(parentStory.links);
         }
+        mergeStories.push(story);
         mergeNodes.push(nodes);
         mergeLinks.push(links);
 
         const mergedStory = {
+            stories: mergeStories.flat(),
             nodes: mergeNodes.flat(),
             links: mergeLinks.flat()
         }
         return mergedStory;
     } else {
-        return { nodes, links }
+        return { stories: [story], nodes, links }
     }
 }
 
