@@ -1,11 +1,18 @@
 const { Link } = require('../models/link');
 const { Node } = require('../models/node');
 const { Story } = require('../models/story');
+const { cache, delCache, delCacheWPattern } = require('../services/cacheService');
 
 async function clearDB() {
     await Story.deleteMany({});
     await Node.deleteMany({});
     await Link.deleteMany({});
+}
+
+async function clearRedis() {
+    await delCacheWPattern("node_*");
+    await delCacheWPattern("test_*");
+    await delCache("SelectedStory");
 }
 
 async function initGraph() {
@@ -44,14 +51,38 @@ async function initGraph() {
     await link6.save();
     await link7.save();
 
-    return {
+    /*await cache('SelectedStory', testStory.id)
+
+    await cache(`node_${node1.id}`, node1);
+    await cache(`node_${node2.id}`, node2);
+    await cache(`node_${node3.id}`, node3);
+    await cache(`node_${node4.id}`, node4);
+    await cache(`node_${node5.id}`, node5);
+    await cache(`node_${node6.id}`, node6);
+    await cache(`node_${node7.id}`, node7);
+
+    await cache(`link_${link1.id}`, link1);
+    await cache(`link_${link2.id}`, link2);
+    await cache(`link_${link3.id}`, link3);
+    await cache(`link_${link4.id}`, link4);
+    await cache(`link_${link5.id}`, link5);
+    await cache(`link_${link6.id}`, link6);
+    await cache(`link_${link7.id}`, link7);*/
+
+    /*return {
         story: testStory,
         nodes: [node1, node2, node3, node4, node5, node6, node7],
         links: [link1, link2, link3, link4, link5, link6, link7]
+    }*/
+    return {
+        story: await Story.findOne({}),
+        nodes: await Node.find({}),
+        links: await Link.find({})
     }
 }
 
 module.exports = {
     clearDB,
-    initGraph
+    initGraph,
+    clearRedis
 }
