@@ -27,8 +27,8 @@ function createAdjacencyMatrix(nodes, links) {
     }
 
     for (const link of links) {
-        const fromNode = nodes.find(node => node.id == link.from);
-        const toNode = nodes.find(node => node.id == link.to);
+        const fromNode = nodes.find(node => node._id == link.from);
+        const toNode = nodes.find(node => node._id == link.to);
         if (adjacencyMatrix.has(fromNode)) {
             adjacencyMatrix.get(fromNode).set(toNode, true);
         }
@@ -42,11 +42,9 @@ function createAdjacencyMatrix(nodes, links) {
  * 
  * @param {Node} node - The node to find the incoming links for.
  * @param {[Link]} links - An array of Link objects representing all the links in the graph.
- * 
- * @returns {[Link]} An array of Link objects representing the incoming links to the given node.
  */
-function getInlinks(node, links) {
-    return links.filter(link => link.to == node.id);
+function getInlinks(nodeId, links) {
+    return links.filter(link => link.to.toString() === nodeId.toString());
 }
 
 /**
@@ -55,11 +53,10 @@ function getInlinks(node, links) {
  * @param {Node} node - The node to find the outgoing links for.
  * @param {[Link]} links - An array of Link objects representing all the links in the graph.
  * 
- * @returns {[Link]} An array of Link objects representing the outgoing links from the given node.
- */
-function getOutlinks(node, links) {
-    const outLinks = links.filter(link => link.from == node.id);
-    return outLinks;
+ * @returns {[Link]} 
+*/
+function getOutlinks(nodeId, links) {
+    return links.filter(link => link.from.toString() === nodeId.toString());
 }
 
 /**
@@ -77,16 +74,20 @@ function getUnreachableNodes(nodes, startNode, links) {
     const visited = new Set();
 
     // perform DFS on the graph starting from the startNode, following both incoming and outgoing links
+    /**
+     * @param {Node} node 
+     * @param {[Link]} links 
+     */
     function dfs(node) {
         visited.add(node);
-        for (const link of getOutlinks(node, links)) {
-            const neighbor = nodes.find(n => n.id == link.to);
+        for (const link of getOutlinks(node._id, links)) {
+            const neighbor = nodes.find(n => n._id == link.to);
             if (!visited.has(neighbor)) {
                 dfs(neighbor);
             }
         }
-        for (const link of getInlinks(node, links)) {
-            const neighbor = nodes.find(n => n.id == link.from);
+        for (const link of getInlinks(node._id, links)) {
+            const neighbor = nodes.find(n => n._id == link.from);
             if (!visited.has(neighbor)) {
                 dfs(neighbor);
             }
@@ -126,7 +127,7 @@ function getDependentBranchAdjMatrix(nodes, links, startNode) {
         usedNodeList.add(current);
 
         // Find the outbound links for the current node
-        const outLinks = getOutlinks(current, links);
+        const outLinks = getOutlinks(current._id, links);
         if (outLinks.length > 0) {
             // Iterate through the outbound links
             for (const link of outLinks) {
@@ -156,7 +157,7 @@ function getDependentBranchAdjMatrix(nodes, links, startNode) {
     // Iterate through the nodes in usedNodeList
     for (const element of usedNodeList) {
          // If the number of inbound links for the node equals the count stored in cntMap, add the node to dependentNodes
-         if (getInlinks(element, links).length == cntMap.get(element.id)) dependentNodes.push(element);
+         if (getInlinks(element._id, links).length == cntMap.get(element.id)) dependentNodes.push(element);
     }
     // Add the start node to dependentNodes
     dependentNodes.push(startNode);
@@ -198,12 +199,12 @@ function getDependentBranch(nodes, links, startNode) {
             // Iterate through the entries in the inner map
             for (const [toNode, hasLink] of outLinks.entries()) {
                 // Check if the link has already been followed
-                if (!usedLinkList.has(toNode.id)) {
+                if (!usedLinkList.has(toNode._id)) {
                     // If the link has not been followed, increment the count for the toNode in cntMap
-                    if (cntMap.has(toNode.id)) {
-                        cntMap.set(toNode.id, cntMap.get(toNode.id) + 1);
+                    if (cntMap.has(toNode._id)) {
+                        cntMap.set(toNode._id, cntMap.get(toNode._id) + 1);
                     } else {
-                        cntMap.set(toNode.id, 1);
+                        cntMap.set(toNode._id, 1);
                     }
                     
                     // If the toNode has not been visited yet, add it to the queue
@@ -220,8 +221,9 @@ function getDependentBranch(nodes, links, startNode) {
     // Iterate through the nodes in usedNodeList
     for (const element of usedNodeList) {
          // If the number of inbound links for the node equals the count stored in cntMap, add the node to dependentNodes
-         if (adjacencyMatrix.get(element).size == cntMap.get(element.id)) dependentNodes.push(element);
+         if (adjacencyMatrix.get(element).size == cntMap.get(element._id)) dependentNodes.push(element);
     }
+
     // Add the start node to dependentNodes
     dependentNodes.push(startNode);
 

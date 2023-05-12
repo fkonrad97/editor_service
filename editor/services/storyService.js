@@ -16,7 +16,6 @@ async function fetchParentStory(story) {
 }
 
 /**
- * 
  * @param {*} story 
  * @param {*} nodes 
  * @param {*} links 

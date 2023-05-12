@@ -11,7 +11,6 @@ const { getUnreachableNodes, getDependentBranch } = require('../services/nodeSer
 const { getCachedData } = require('../middleware/cacheMiddleware');
 const { cache, getCache, delCache, getCacheWPattern, setStoryCache } = require('../services/cacheService');
 const { mergeStories } = require('../services/storyService');
-const { redisClient } = require('../startup/caching');
 
 /**
  * To select and cache the current story.
@@ -138,7 +137,7 @@ router.put('/updateLinkToNode', async (req, res) => {
         to: req.body.toNodeId
     });
 
-    await cache(`link_${req.body.linkId}`);
+    await cache(`link_${req.body.linkId}`, await Link.findById({_id: req.body.linkId}));
 
     res.status(200).send(updateResult);
 });
@@ -156,7 +155,7 @@ router.put('/updateLinkFromNode', async (req, res) => {
         from: req.body.fromNodeId
     });
 
-    await cache(`link_${req.body.linkId}`);
+    await cache(`link_${req.body.linkId}`, await Link.findById({_id: req.body.linkId}));
 
     res.status(200).send(updateResult);
 });
@@ -174,7 +173,7 @@ router.put('/updateNodeStory', async (req, res) => {
         nodeStory: req.body.text
     });
 
-    await cache(`node_${req.body.nodeId}`);
+    await cache(`node_${req.body.nodeId}`, await Link.findById({_id: req.body.nodeId}));
 
     res.status(200).send(updateResult);
 });
@@ -262,7 +261,7 @@ router.delete('/deleteIsolatedNodes', async (req, res) => {
     const startNode = nodes.find(node => node.startingNode === true);
 
     if (typeof startNode !== 'undefined') {
-        const isolatedNodesIds = getUnreachableNodes(nodes, startNode, links).map(element => element.id);
+        const isolatedNodesIds = getUnreachableNodes(nodes, startNode, links).map(element => element._id);
 
         const deletedInstances = await Node.deleteMany({
             _id: {
@@ -282,6 +281,7 @@ router.delete('/deleteIsolatedNodes', async (req, res) => {
  * To delete all nodes and links which are depend on the 'startNode' argument.
  * 'findOneAndDelete' is justified, because of the post-hook which deletes the related links
  */
+// Same here like above by the isolated: Since we use redis, it save the object the way we should use ._id rather than .id, and these are not interchangeable.
 router.delete('/deleteDependencyTree', async (req, res) => {
     const selectedStoryId = await getCache('SelectedStory');
     if (selectedStoryId == null) return res.status(404).send('Story has not been selected!');
@@ -295,7 +295,7 @@ router.delete('/deleteDependencyTree', async (req, res) => {
     let deletedInstances = [];
     for (const element of dependentNodes) {
         deletedInstances.push(await Node.findOneAndDelete( 
-            { _id: element.id }
+            { _id: element._id }
         ));
     }
 

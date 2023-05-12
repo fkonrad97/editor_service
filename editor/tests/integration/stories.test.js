@@ -2,7 +2,12 @@ const request = require('supertest');
 const { Story } = require('../../models/story');
 const { Node } = require('../../models/node');
 const { Link } = require('../../models/link'); 
-const { clearDB, initGraph } = require('../testService');
+const { clearDB, initGraph, clearRedis } = require('../testService');
+const { delCacheWPattern } = require('../../services/cacheService');
+
+/**
+ * Should use a different Redis server for testing!!
+ */
 
 let server;
 
@@ -13,7 +18,9 @@ describe('/editor/stories/', () => {
 
     afterEach(async () => { 
         server.close();
+        await delCacheWPattern(`*`);
         await clearDB();
+        await clearRedis();
     });
 
     describe('GET /', () => {
@@ -43,12 +50,12 @@ describe('/editor/stories/', () => {
         });
 
         it('should create a new node object and save to the database', async () => {
-            await request(server).post('/editor/stories/createStory').send({
+            let createdStory = await request(server).post('/editor/stories/createStory').send({
                 title: "TestStoryTitle"
             });
 
-            await request(server).get('/editor/stories/selectStory').send({
-                title: "TestStoryTitle"
+            await request(server).get('/editor/stories/loadStory').send({
+                storyId: createdStory.body._id
             });
 
             const nodesBeforeSave = await Node.find({});
@@ -76,8 +83,8 @@ describe('/editor/stories/', () => {
             ]);
 
             // To update cache in the request
-            await request(server).get('/editor/stories/selectStory').send({
-                title: "TestStoryTitle"
+            await request(server).get('/editor/stories/loadStory').send({
+                storyId: testStory.insertedIds[0]
             });
 
             const linksBeforeSave = await Link.find({});
@@ -117,8 +124,8 @@ describe('/editor/stories/', () => {
                 }
             ]);
 
-            await request(server).get('/editor/stories/selectStory').send({
-                title: "TestStoryTitle"
+            await request(server).get('/editor/stories/loadStory').send({
+                storyId: testStory.insertedIds[0]
             });
 
             const res = await request(server).put('/editor/stories/updateLinkToNode').send({
@@ -150,8 +157,8 @@ describe('/editor/stories/', () => {
                 }
             ]);
 
-            await request(server).get('/editor/stories/selectStory').send({
-                title: "TestStoryTitle"
+            await request(server).get('/editor/stories/loadStory').send({
+                storyId: testStory.insertedIds[0]
             });
 
             const res = await request(server).put('/editor/stories/updateLinkFromNode').send({
@@ -172,8 +179,8 @@ describe('/editor/stories/', () => {
                 { nodeStory: 'MockNode1', story: testStory.insertedIds[0] }
             ]);
 
-            await request(server).get('/editor/stories/selectStory').send({
-                title: "TestStoryTitle"
+            await request(server).get('/editor/stories/loadStory').send({
+                storyId: testStory.insertedIds[0]
             });
 
             const res = await request(server).put('/editor/stories/updateNodeStory').send({
@@ -209,8 +216,8 @@ describe('/editor/stories/', () => {
                 { nodeStory: 'MockNode1', story: testStory.insertedIds[0] }
             ]);
     
-            await request(server).get('/editor/stories/selectStory').send({
-                title: "TestStoryTitle"
+            await request(server).get('/editor/stories/loadStory').send({
+                storyId: testStory.insertedIds[0]
             });
     
             const res = await request(server).delete('/editor/stories/deleteNode').send({
@@ -243,8 +250,8 @@ describe('/editor/stories/', () => {
                 }
             ]);
     
-            await request(server).get('/editor/stories/selectStory').send({
-                title: "TestStoryTitle"
+            await request(server).get('/editor/stories/loadStory').send({
+                storyId: testStory.insertedIds[0]
             });
     
             const res = await request(server).delete('/editor/stories/deleteLink').send({
@@ -259,14 +266,14 @@ describe('/editor/stories/', () => {
         });
 
         it('should delete isolated nodes', async () => {
-            await initGraph();
+            const testGraph = await initGraph();
 
-            await request(server).get('/editor/stories/selectStory').send({
-                title: "TestStory"
+            await request(server).get('/editor/stories/loadStory').send({
+                storyId: testGraph.story._id
             });
 
             const res = await request(server).delete('/editor/stories/deleteIsolatedNodes');
-
+            
             expect(res.body.deletedCount).toBe(1);
             expect(res.status).toBe(200);
         });
@@ -274,12 +281,12 @@ describe('/editor/stories/', () => {
         it('should delete dependent nodes', async () => {
             const testGraph = await initGraph();
 
-            await request(server).get('/editor/stories/selectStory').send({
-                title: "TestStory"
+            await request(server).get('/editor/stories/loadStory').send({
+                storyId: testGraph.story._id
             });
 
             const res = await request(server).delete('/editor/stories/deleteDependencyTree').send({
-                startNodeId: testGraph.nodes[2].id
+                startNodeId: testGraph.nodes[2]._id
             });
 
             const remainedNodes = await Node.find({});

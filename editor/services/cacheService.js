@@ -28,6 +28,13 @@ module.exports = {
     delCache: async function(key) {
         await redisClient.del(key);
     },
+    delCacheWPattern: async function(pattern) {
+        const matchingKeys = await redisClient.keys(pattern);
+
+        for (const key of matchingKeys) {
+            await redisClient.del(key);
+        }
+    },
     clearCache: async function() {
         await redisClient.flushAll();
     },
