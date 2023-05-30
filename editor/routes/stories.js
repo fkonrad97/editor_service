@@ -8,7 +8,6 @@ const { DeployedStory } = require('../models/deployedStory');
 
 const { getUnreachableNodes, getDependentBranch } = require('../services/nodeService');
 
-const { getCachedData } = require('../middleware/cacheMiddleware');
 const { cache, getCache, delCache, getCacheWPattern, setStoryCache } = require('../services/cacheService');
 const { mergeStories } = require('../services/storyService');
 
@@ -98,6 +97,24 @@ router.post('/addLink', async (req, res) => {
     await cache(`link_${link.id}`, link);
 
     res.status(200).send(link);
+});
+
+/**
+ * To create a new event.
+ */
+router.post('/addEvent', async (req, res) => {
+    const selectedStoryId = await getCache('SelectedStory');
+    if (selectedStoryId == null) return res.status(404).send('Story has not been selected!');
+
+    const updateResult = await Story.findOneAndUpdate({
+        _id: selectedStoryId
+    }, {
+        $push: {
+            eventContainer: { eventName: req.body.eventName, magnitude: req.body.magnitude, ownerId: req.body.ownerId }
+        }
+    });
+
+    res.status(200).send(updateResult);
 });
 
 /**
@@ -247,6 +264,24 @@ router.delete('/deleteLink', async (req, res) => {
     await delCache(`link_${req.body.linkId}`);
 
     res.status(200).send(deletedInstance);
+});
+
+/**
+ * To delete an event.
+ */
+router.delete('/deleteEvent', async (req, res) => {
+    const selectedStoryId = await getCache('SelectedStory');
+    if (selectedStoryId == null) return res.status(404).send('Story has not been selected!');
+
+    const updateResult = await Story.updateOne({
+        _id: selectedStoryId
+    }, {
+        $pull: {
+            eventContainer: { _id: req.body.eventId }
+        }
+    });
+
+    res.status(200).send(updateResult);
 });
 
 /**
