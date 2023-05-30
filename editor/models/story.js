@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const winston = require('winston');
+const { eventSchema } = require('./eventContainer')
 
 /**
  * Story schema:
@@ -9,14 +10,19 @@ const storySchema = new mongoose.Schema({
     title: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        ref: 'Title'
     },
     parentCIDs: [
         {
             type: String,
-            ref: 'parentCIDs'
+            ref: 'CIDs of Parent Stories'
         }
-    ]
+    ],
+    eventContainer: [{
+        type: eventSchema,
+        ref: 'Event Container'
+    }]
 });
 
 /**
