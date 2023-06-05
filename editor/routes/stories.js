@@ -114,6 +114,8 @@ router.post('/addEvent', async (req, res) => {
         }
     });
 
+    console.log(updateResult)
+
     res.status(200).send(updateResult);
 });
 
