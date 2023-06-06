@@ -12,7 +12,7 @@ const nodeSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    story: {
+    storyId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Story',
         required: true

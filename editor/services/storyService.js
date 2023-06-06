@@ -1,18 +1,24 @@
-const { retrieveStory } = require('../services/nodeService');
+const { DeployedStory } = require('../models/deployedStory');
+const { Story } = require('../models/story'); 
+const { Node } = require('../models/node'); 
+const { Link } = require('../models/link'); 
 
 /**
-* 
 * @param {*} story 
 * @returns 
 */
 async function fetchParentStory(story) {
-    const parentStories = [];
-    if (story.parentCIDs.length != 0) {
-        for (const element of story.parentCIDs) {
-            parentStories.push(await retrieveStory(element));
-        }
+    const parentStoryIds = story.parentStories;
+    
+    if (parentStoryIds.length != 0) {
+        const parentStories = DeployedStory.find({
+            $in: parentStoryIds
+        });
+        
+        return parentStories;
     }
-    return parentStories;
+
+    return [];
 }
 
 /**
@@ -30,7 +36,7 @@ async function mergeStories(story, nodes, links) {
 
     if (parentStories.length != 0) {
         for (const parentStory of parentStories) {
-            mergeStories.push(parentStory.id);  // Is it working???
+            mergeStories.push(parentStory);
             mergeNodes.push(parentStory.nodes);
             mergeLinks.push(parentStory.links);
         }
@@ -49,5 +55,19 @@ async function mergeStories(story, nodes, links) {
     }
 }
 
+/**
+ * 
+ */
+async function loadStory(storyId) {
+    const tmpStory = await Story.findOne({ _id: storyId });
+    const tmpNodes = await Node.find({ storyId: storyId });
+    const tmpLinks = await Link.find({ storyId: storyId });
+
+    const { stories, nodes, links } = await mergeStories(tmpStory, tmpNodes, tmpLinks);
+
+    return { stories, nodes, links }
+}
+
 exports.mergeStories = mergeStories;
 exports.fetchParentStory = fetchParentStory;
+exports.loadStory = loadStory;

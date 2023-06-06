@@ -1,18 +1,35 @@
 const mongoose = require('mongoose');
+const { eventSchema } = require('./eventContainer')
+const { nodeSchema } = require('./node');
+const { linkSchema } = require('./link');
 
 /**
- * DeployedStory schema: After the Story uploaded to IPFS, 
- * then the mongoDB database will store the Story's id and the CID from IPFS.
+ * DeployedStory schema
  */
 const deployedStorySchema = new mongoose.Schema({
     _id: {
-        type: String
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Story ID'
     },
-    cid: {
+    title: {
         type: String,
+        required: true,
         unique: true,
-        required: true
-    }
+        ref: 'Title'
+    },
+    parentStories: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            unique: true,
+            ref: 'Parent Stories'
+        }
+    ],
+    eventContainer: [{
+        type: eventSchema,
+        ref: 'Event Container'
+    }],
+    nodes: [{ type: nodeSchema }],
+    links: [{ type: linkSchema }]
 }, { _id: false });
 
 const DeployedStory = mongoose.model('DeployedStories', deployedStorySchema);
