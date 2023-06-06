@@ -4,12 +4,11 @@ const router = express.Router();
 const { Node } = require('../models/node');
 const { Link } = require('../models/link');  
 const { Story } = require('../models/story'); 
-const { DeployedStory } = require('../models/deployedStory');
 
 const { getUnreachableNodes, getDependentBranch } = require('../services/nodeService');
 
 const { cache, getCache, delCache, getCacheWPattern, setStoryCache } = require('../services/cacheService');
-const { mergeStories } = require('../services/storyService');
+const { loadStory } = require('../services/storyService');
 
 /**
  * To select and cache the current story.
@@ -17,12 +16,9 @@ const { mergeStories } = require('../services/storyService');
 router.get('/loadStory', async (req, res) => {
     const _storyId = req.body.storyId;
 
-    const tmpStory = await Story.findOne({ id: _storyId });
-    const tmpNodes = await Node.find({ story: _storyId });
-    const tmpLinks = await Link.find({ story: _storyId });
-    const { stories, nodes, links } = await mergeStories(tmpStory, tmpNodes, tmpLinks);
+    const { stories, nodes, links } = await loadStory(_storyId);
 
-    const mergedArray = nodes.concat(links); // ???
+    const mergedArray = stories.concat(links, nodes);
 
     await setStoryCache(stories, nodes, links);
 
@@ -48,8 +44,6 @@ router.post('/createStory', async (req, res) => {
     });
 
     await story.save();
-
-    await cache(`story_${story.id}`, story);
 
     res.status(200).send(story);
 });
@@ -114,31 +108,29 @@ router.post('/addEvent', async (req, res) => {
         }
     });
 
-    console.log(updateResult)
+    await cache(`story_${selectedStoryId}`, await Story.findById({_id: selectedStoryId}));
 
     res.status(200).send(updateResult);
 });
 
 /**
  * Add parent stories to the current story.
- *  MORE WORK ON THAT
  */
  router.put('/addParentStory', async (req, res) => {
-    if (CacheStoryService.isEmpty()) return res.status(404).send('Story has not been selected!');
-
-    const story = await DeployedStory.findOne({
-        _id: req.body.storyId
-    });
+    const selectedStoryId = await getCache('SelectedStory');
+    if (selectedStoryId == null) return res.status(404).send('Story has not been selected!');
 
     const updateResult = await Story.findOneAndUpdate({
-        _id: CacheStoryService.story._id
+        _id: selectedStoryId
     }, {
         $push: {
-            parentCIDs: story.cid
+            parentStories: req.body.parentStoryId
         }
     });
 
-    // Update cache
+    // Full refresh cache
+    const { stories, nodes, links } = await loadStory(selectedStoryId);
+    await setStoryCache(stories, nodes, links);
 
     res.status(200).send(updateResult);
 });
@@ -198,34 +190,31 @@ router.put('/updateNodeStory', async (req, res) => {
 });
 
 /**
- * ??????
  * Delete parent stories to the current story.
  */
  router.put('/deleteParentStory', async (req, res) => {
-    if (CacheStoryService.isEmpty()) return res.status(404).send('Story has not been selected!');
+    const selectedStoryId = await getCache('SelectedStory');
+    if (selectedStoryId == null) return res.status(404).send('Story has not been selected!');
 
-    const story = await DeployedStory.findOne({
-        _id: req.body.storyId
-    });
-
-    const deletion = await Story.updateOne({
-        _id: CacheStoryService.story._id 
+    const deletedInstance = await Story.updateOne({
+        _id: selectedStoryId
     }, {
         $pull: {
-            parentCIDs: story.cid
+            parentStories: req.body.parentStoryId
         }
     });
 
-    // Update cache
+    // Full refresh cache
+    const { stories, nodes, links } = await loadStory(selectedStoryId);
+    await setStoryCache(stories, nodes, links);
     
-    res.status(200).send(deletion);
+    res.status(200).send(deletedInstance);
 });
 
 /**
  * To delete selected Story.
  * 'Story.findOneAndDelete' uses post middlewares.
  */
-// CACHE LOGIC HERE QUESTIONABLE
 router.delete('/deleteStory', async (req, res) => {
     const deletedInstance = await Story.findOneAndDelete(
         { _id: req.body.storyId }
@@ -283,6 +272,8 @@ router.delete('/deleteEvent', async (req, res) => {
         }
     });
 
+    await cache(`story_${selectedStoryId}`, await Story.findById({_id: selectedStoryId}));
+
     res.status(200).send(updateResult);
 });
 
@@ -293,8 +284,8 @@ router.delete('/deleteIsolatedNodes', async (req, res) => {
     const selectedStoryId = await getCache('SelectedStory');
     if (selectedStoryId == null) return res.status(404).send('Story has not been selected!');
 
-    const nodes = await getCacheWPattern('node_*');
-    const links = await getCacheWPattern('link_*');
+    const nodes = (await getCacheWPattern('node_*')).filter(node => node.storyId === selectedStoryId);
+    const links = (await getCacheWPattern('link_*')).filter(link => link.storyId === selectedStoryId);
     const startNode = nodes.find(node => node.startingNode === true);
 
     if (typeof startNode !== 'undefined') {
@@ -318,14 +309,15 @@ router.delete('/deleteIsolatedNodes', async (req, res) => {
  * To delete all nodes and links which are depend on the 'startNode' argument.
  * 'findOneAndDelete' is justified, because of the post-hook which deletes the related links
  */
-// Same here like above by the isolated: Since we use redis, it save the object the way we should use ._id rather than .id, and these are not interchangeable.
 router.delete('/deleteDependencyTree', async (req, res) => {
     const selectedStoryId = await getCache('SelectedStory');
     if (selectedStoryId == null) return res.status(404).send('Story has not been selected!');
 
-    const nodes = await getCacheWPattern('node_*');
-    const links = await getCacheWPattern('link_*');
+    const nodes = (await getCacheWPattern('node_*')).filter(node => node.storyId === selectedStoryId);
+    const links = (await getCacheWPattern('link_*')).filter(link => link.storyId === selectedStoryId);
     const startNode = nodes.find(node => node._id === req.body.startNodeId);
+
+    // Test startNode if the find gave back anything above
 
     const dependentNodes = getDependentBranch(nodes, links, startNode);
 

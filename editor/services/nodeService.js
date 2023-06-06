@@ -231,48 +231,7 @@ function getDependentBranch(nodes, links, startNode) {
     return dependentNodes;
 }
 
-
-// 1. Maybe would be better to use fetch the tokenURI from the NFT rather than searching for CID in the database
-// 2. Move the DAO calls out of the function
-async function retrieveStory(cid) { // should be changed to the new
-    const { create } = await import('ipfs-http-client');
-    const node = create();
-
-    const chunks = [];
-    for (const chunk of node.cat(cid)) {
-        chunks.push(chunk);
-    }
-
-    const retrievedStoryJSON = JSON.parse(chunks.toString());
-
-    return retrievedStoryJSON;
-}
-
-// Fetch the token URI from the NFT rather than searching for the CID in the database
-async function retrieveStoryNEW(tokenURI) {
-    const { create } = await import('ipfs-http-client');
-    const node = create();
-
-    // Extract the CID from the token URI
-    const cid = tokenURI.split('/').pop();
-
-    // Initialize the chunks array
-    const chunks = [];
-
-    // Retrieve the file from IPFS in chunks
-    for await (const chunk of node.cat(cid)) {
-        chunks.push(chunk);
-    }
-
-    // Parse the file contents as JSON
-    const retrievedStoryJSON = JSON.parse(chunks.toString());
-
-    // Return the parsed JSON
-    return retrievedStoryJSON;
-}
-
 exports.getOutlinks = getOutlinks;
 exports.getInlinks = getInlinks;
-exports.retrieveStory = retrieveStory;
 exports.getUnreachableNodes = getUnreachableNodes;
 exports.getDependentBranch = getDependentBranch;

@@ -13,10 +13,11 @@ const storySchema = new mongoose.Schema({
         unique: true,
         ref: 'Title'
     },
-    parentCIDs: [
+    parentStories: [
         {
-            type: String,
-            ref: 'CIDs of Parent Stories'
+            type: mongoose.Schema.Types.ObjectId,
+            unique: true,
+            ref: 'Parent Stories'
         }
     ],
     eventContainer: [{

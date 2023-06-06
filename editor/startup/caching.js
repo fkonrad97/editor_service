@@ -1,8 +1,3 @@
-// https://dev.to/franciscomendes10866/caching-in-node-js-using-redis-2o80
-// https://blog.bitsrc.io/optimizing-node-js-performance-with-redis-caching-f509edf33e04
-// https://redis.io/docs/getting-started/installation/install-redis-on-windows/
-// https://stackoverflow.com/questions/6910378/how-can-i-stop-redis-server
-
 const redis = require("redis");
 const winston = require('winston');
 

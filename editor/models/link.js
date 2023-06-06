@@ -12,7 +12,7 @@ const linkSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    story: {
+    storyId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Story',
         required: true

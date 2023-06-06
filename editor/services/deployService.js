@@ -1,41 +1,25 @@
+const { DeployedStory } = require('../models/deployedStory');
+
 /**
- * 'finalizeStory' function puts Story, Nodes and Links together into one object to be ready to upload to IPFS
+ * 'finalizeStory' function puts Story, Nodes and Links together into one object
  * @param {Story} story 
  * @param {[Node]} storyNodes 
  * @param {[Link]} storyLinks 
  * @returns 
  */
-function finalizeStory(story, storyNodes, storyLinks) {
-    let nodesArr = [];
-
-    for(const element of storyNodes) {
-        nodesArr.push({
-            id: element.id,
-            startingNode: element.startingNode,
-            nodeStory: element.nodeStory,
-            inLinks: element.inLinks,
-            outLinks: element.outLinks
-        });
-    }
-
-    let linksArr = [];
-    for(const element of storyLinks) {
-        linksArr.push({
-            id: element.id,
-            decisionText: element.decisionText,
-            from: element.from,
-            to: element.to
-        });
-    }
-
-    const deployedStory = {
+async function deploy(story, nodes, links) {2
+    const deployedStory = new DeployedStory({
+        _id: story._id,
         title: story.title,
-        storyId: story.id,
-        nodes: nodesArr,
-        links: linksArr
-    }
+        parentStories: story.parentStories,
+        eventContainer: story.eventContainer,
+        nodes: nodes,
+        links: links
+    });
+
+    await deployedStory.save();
 
     return deployedStory;
 }
 
-exports.finalizeStory = finalizeStory;
+exports.deploy = deploy;
